@@ -1,4 +1,11 @@
 <resources>
     <string name="app_name">SecretContacts</string>
-    <string name="action_settings">Settings</string>
+    <string name="menu_login">Log In</string>
+    <string name="menu_logout">Log Out</string>
+    <string name="menu_sync_now">Sync Now</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_menu">MenuActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
