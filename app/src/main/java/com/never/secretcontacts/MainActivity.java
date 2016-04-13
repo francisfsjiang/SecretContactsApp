@@ -6,8 +6,6 @@ import java.util.List;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -16,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,8 +26,10 @@ import com.never.secretcontacts.util.SortAdapter;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView sortListView;
-    private SideBar sideBar;
+    private SearchView search_view;
+    private ListView sort_list_view;
+    private SideBar side_bar;
+    private TextView login_recommend_text;
     /**
      * 显示字母的TextView
      */
@@ -39,8 +40,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 汉字转换成拼音的类
      */
-    private CharacterParser characterParser;
-    private List<Contact> SourceDateList;
+    private CharacterParser character_parser;
+    private List<Contact> source_data_list;
 
     /**
      * 根据拼音来排列ListView里面的数据类
@@ -55,30 +56,32 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         //实例化汉字转拼音类
-        characterParser = CharacterParser.getInstance();
+        character_parser = CharacterParser.getInstance();
 
         pinyinComparator = new PinyinComparator();
 
-        sideBar = (SideBar) findViewById(R.id.sidebar);
+        search_view = (SearchView) findViewById(R.id.search_view);
+        login_recommend_text = (TextView) findViewById(R.id.login_recommend_text);
+        side_bar = (SideBar) findViewById(R.id.side_bar);
         dialog = (TextView) findViewById(R.id.dialog);
-        sideBar.setTextView(dialog);
+        side_bar.setTextView(dialog);
 
         //设置右侧触摸监听
-        sideBar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
+        side_bar.setOnTouchingLetterChangedListener(new SideBar.OnTouchingLetterChangedListener() {
 
             @Override
             public void onTouchingLetterChanged(String s) {
                 //该字母首次出现的位置
                 int position = adapter.getPositionForSection(s.charAt(0));
-                if(position != -1){
-                    sortListView.setSelection(position);
+                if (position != -1) {
+                    sort_list_view.setSelection(position);
                 }
 
             }
         });
 
-        sortListView = (ListView) findViewById(R.id.country_lvcountry);
-        sortListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        sort_list_view = (ListView) findViewById(R.id.country_lvcountry);
+        sort_list_view.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
@@ -88,12 +91,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        SourceDateList = filledData(getResources().getStringArray(R.array.date));
+        if(MyApplication.getLoginStatus()) {
+            sort_list_view.setVisibility(View.VISIBLE);
+            side_bar.setVisibility(View.VISIBLE);
+            search_view.setVisibility(View.VISIBLE);
+            login_recommend_text.setVisibility(View.GONE);
+        }
+        else {
+            sort_list_view.setVisibility(View.GONE);
+            side_bar.setVisibility(View.GONE);
+            search_view.setVisibility(View.GONE);
+            login_recommend_text.setVisibility(View.VISIBLE);
+        }
+
+        source_data_list = filledData(getResources().getStringArray(R.array.date));
 
         // 根据a-z进行排序源数据
-        Collections.sort(SourceDateList, pinyinComparator);
-        adapter = new SortAdapter(this, SourceDateList);
-        sortListView.setAdapter(adapter);
+        Collections.sort(source_data_list, pinyinComparator);
+        adapter = new SortAdapter(this, source_data_list);
+        sort_list_view.setAdapter(adapter);
 
 
 //        mClearEditText = VClearEditText) findViewById(R.id.filter_edit);
@@ -135,6 +151,11 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        if (id == R.id.menu_login) {
+            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+            startActivity(intent);
+            return true;
+        }
         //noinspection SimplifiableIfStatement
         if (id == R.id.menu_settings) {
             return true;
@@ -155,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
             Contact sortModel = new Contact();
             sortModel.setName(date[i]);
             //汉字转换成拼音
-            String pinyin = characterParser.getSelling(date[i]);
+            String pinyin = character_parser.getSelling(date[i]);
             String sortString = pinyin.substring(0, 1).toUpperCase();
 
             // 正则表达式，判断首字母是否是英文字母
@@ -179,14 +200,14 @@ public class MainActivity extends AppCompatActivity {
         List<Contact> filterDateList = new ArrayList<Contact>();
 
         if (TextUtils.isEmpty(filterStr)) {
-            filterDateList = SourceDateList;
+            filterDateList = source_data_list;
         } else {
             filterDateList.clear();
-            for (Contact sortModel : SourceDateList) {
+            for (Contact sortModel : source_data_list) {
                 String name = sortModel.getName();
                 if (name.toUpperCase().indexOf(
                         filterStr.toString().toUpperCase()) != -1
-                        || characterParser.getSelling(name).toUpperCase()
+                        || character_parser.getSelling(name).toUpperCase()
                         .startsWith(filterStr.toString().toUpperCase())) {
                     filterDateList.add(sortModel);
                 }

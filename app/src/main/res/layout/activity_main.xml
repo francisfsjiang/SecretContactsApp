@@ -30,7 +30,7 @@
         android:divider="@null"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/searchView" />
+        android:layout_below="@+id/search_view" />
 
     <TextView
         android:id="@+id/dialog"
@@ -46,22 +46,33 @@
         android:layout_marginBottom="64dp" />
 
     <com.never.secretcontacts.SideBar
-        android:id="@+id/sidebar"
+        android:id="@+id/side_bar"
         android:layout_width="30.0dip"
         android:layout_height="fill_parent"
         android:layout_gravity="end|center"
         android:layout_alignEnd="@+id/country_lvcountry"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/searchView" />
+        android:layout_below="@+id/search_view" />
 
 
     <SearchView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/searchView"
+        android:id="@+id/search_view"
         android:iconifiedByDefault="false"
         android:layout_below="@+id/view"
         android:layout_alignParentStart="true"
         android:layout_alignParentEnd="true" />
 
+    <TextView
+        android:id="@+id/login_recommend_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:textSize="26.0dip"
+        android:text="@string/login_recommend"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
