@@ -18,16 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.Consts;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.HttpResponse;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.util.ArrayList;
-import java.util.List;
+import okhttp3.Response;
 
 /**
  * A login screen that offers login via email/password.
@@ -207,24 +198,12 @@ public class LoginActivity extends AppCompatActivity {
             // TODO: attempt authentication against a network service.
 
             try {
-                // Simulate network access.
 
-                List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-                formparams.add(new BasicNameValuePair("email", mEmail));
-                formparams.add(new BasicNameValuePair("passwd", mPassword));
-                UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, "UTF-8");
-
-                HttpClient client = MyApplication.getHttpClient();
-                HttpPost post = new HttpPost("https://sc.404notfound.top/api/login");
-                post.setEntity(entity);
-                HttpResponse response = client.execute(post);
-                int status_code = response.getStatusLine().getStatusCode();
-
-                Log.i("http", "status " + status_code);
-
+                Response rsp = MyApplication.HttpPost(MyApplication.URL_LOGIN, "email=" + mEmail + "&" + "passwd=" + mPassword);
+                Log.i("http", "code " + rsp.code());
 
             }
-            catch (java.io.IOException e) {
+            catch (Exception e) {
                 Log.w("network", "Network failed." + e.getMessage());
             }
 
