@@ -33,12 +33,11 @@ public class MyApplication extends Application{
         return login_status;
     }
 
-    public static Response HttpPost(String url, String content) throws java.io.IOException{
+    public static Response HttpPost(String url, RequestBody request_body) throws java.io.IOException{
         OkHttpClient client = new OkHttpClient();
-        RequestBody body = RequestBody.create(TEXT, content);
         Request request = new Request.Builder()
                 .url(url)
-                .post(body)
+                .post(request_body)
                 .build();
         return client.newCall(request).execute();
     }

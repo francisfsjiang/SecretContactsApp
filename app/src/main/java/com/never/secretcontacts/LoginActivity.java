@@ -18,6 +18,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import okhttp3.FormBody;
 import okhttp3.Response;
 
 /**
@@ -198,9 +199,15 @@ public class LoginActivity extends AppCompatActivity {
             // TODO: attempt authentication against a network service.
 
             try {
-
-                Response rsp = MyApplication.HttpPost(MyApplication.URL_LOGIN, "email=" + mEmail + "&" + "passwd=" + mPassword);
-                Log.i("http", "code " + rsp.code());
+                try {
+                    FormBody body = new FormBody.Builder().
+                            add("email", mEmail).
+                            add("passwd", mPassword).build();
+                    Response rsp = MyApplication.HttpPost(MyApplication.URL_LOGIN, body);
+                    Log.i("http", "code " + rsp.code());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
             }
             catch (Exception e) {
