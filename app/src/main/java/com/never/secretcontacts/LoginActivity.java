@@ -18,6 +18,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import okhttp3.FormBody;
 import okhttp3.Response;
 
@@ -199,19 +201,17 @@ public class LoginActivity extends AppCompatActivity {
             // TODO: attempt authentication against a network service.
 
             try {
-                try {
-                    FormBody body = new FormBody.Builder().
-                            add("email", mEmail).
-                            add("passwd", mPassword).build();
-                    Response rsp = MyApplication.HttpPost(MyApplication.URL_LOGIN, body);
-                    Log.i("http", "code " + rsp.code());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                JSONObject json = new JSONObject();
+                json.put("email", mEmail);
+                json.put("passwd", mPassword);
+                Integer status_code = 0;
+                JSONObject resp_json = MyApplication.HttpPostJson(MyApplication.URL_LOGIN, json, status_code);
+                Log.d("http", "code " + status_code);
+                return false;
 
             }
             catch (Exception e) {
-                Log.w("network", "Network failed." + e.getMessage());
+                Log.e("network", "Network failed." + e.getMessage());
             }
 
             return true;
@@ -225,6 +225,7 @@ public class LoginActivity extends AppCompatActivity {
             if (success) {
                 Toast.makeText(LoginActivity.this, "Success", Toast.LENGTH_SHORT).show();
             } else {
+                Toast.makeText(LoginActivity.this, "Failed", Toast.LENGTH_SHORT).show();
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
