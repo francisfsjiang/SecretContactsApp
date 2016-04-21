@@ -13,12 +13,12 @@ import android.widget.TextView;
 import com.never.secretcontacts.R;
 
 public class SortAdapter extends BaseAdapter implements SectionIndexer{
-    private List<Contact> list = null;
+    private List<Contact> list_ = null;
     private Context mContext;
 
     public SortAdapter(Context mContext, List<Contact> list) {
         this.mContext = mContext;
-        this.list = list;
+        this.list_ = list;
     }
 
     /**
@@ -26,16 +26,16 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
      * @param list
      */
     public void updateListView(List<Contact> list){
-        this.list = list;
+        this.list_ = list;
         notifyDataSetChanged();
     }
 
     public int getCount() {
-        return this.list.size();
+        return this.list_.size();
     }
 
     public Object getItem(int position) {
-        return list.get(position);
+        return list_.get(position);
     }
 
     public long getItemId(int position) {
@@ -44,7 +44,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
 
     public View getView(final int position, View view, ViewGroup arg2) {
         ViewHolder viewHolder = null;
-        final Contact mContent = list.get(position);
+        final Contact mContent = list_.get(position);
         if (view == null) {
             viewHolder = new ViewHolder();
             view = LayoutInflater.from(mContext).inflate(R.layout.contact_item, null);
@@ -66,7 +66,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
             viewHolder.tvLetter.setVisibility(View.GONE);
         }
 
-        viewHolder.tvTitle.setText(this.list.get(position).getName());
+        viewHolder.tvTitle.setText(this.list_.get(position).getName());
 
         return view;
 
@@ -84,7 +84,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
      * 根据ListView的当前位置获取分类的首字母的char ascii值
      */
     public int getSectionForPosition(int position) {
-        return list.get(position).getSortLetters().charAt(0);
+        return list_.get(position).getSortLetters().charAt(0);
     }
 
     /**
@@ -92,7 +92,7 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
      */
     public int getPositionForSection(int section) {
         for (int i = 0; i < getCount(); i++) {
-            String sortStr = list.get(i).getSortLetters();
+            String sortStr = list_.get(i).getSortLetters();
             char firstChar = sortStr.toUpperCase().charAt(0);
             if (firstChar == section) {
                 return i;

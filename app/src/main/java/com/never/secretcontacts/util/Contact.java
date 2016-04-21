@@ -3,19 +3,19 @@ package com.never.secretcontacts.util;
 
 public class Contact {
 
-    private String name;   //显示的数据
-    private String sortLetters;  //显示数据拼音的首字母
+    private String name_;   //显示的数据
+    private String sortLetters_;  //显示数据拼音的首字母
 
     public String getName() {
-        return name;
+        return name_;
     }
     public void setName(String name) {
-        this.name = name;
+        this.name_ = name;
     }
     public String getSortLetters() {
-        return sortLetters;
+        return sortLetters_;
     }
     public void setSortLetters(String sortLetters) {
-        this.sortLetters = sortLetters;
+        this.sortLetters_ = sortLetters;
     }
 }

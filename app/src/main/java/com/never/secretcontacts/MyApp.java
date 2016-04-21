@@ -16,7 +16,7 @@ import okhttp3.Response;
 import okhttp3.Request;
 
 
-public class MyApplication extends Application{
+public class MyApp extends Application{
 
     public static final MediaType JSON
             = MediaType.parse("application/json; charset=utf-8");
@@ -25,19 +25,23 @@ public class MyApplication extends Application{
 
     public static String URL_LOGIN = URL_SITE + "api/login";
 
-    private static Boolean login_status;
+    private static Boolean login_status_;
+
+    private static String auth_key_;
+
+    private static Integer auth_key_expire_date_;
 
     @Override
     public void onCreate() {
         super.onCreate();
         SharedPreferences shared_preference = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
-        login_status = shared_preference.getBoolean("login_status", false);
-
-
+        login_status_ = shared_preference.getBoolean("login_status", false);
+        auth_key_ = shared_preference.getString("auth_key", "");
+        auth_key_expire_date_ = shared_preference.getInt("auth_key_expire_date", 0);
     }
 
     public static Boolean getLoginStatus() {
-        return login_status;
+        return login_status_;
     }
 
     public static JSONObject HttpPostJson(String url, JSONObject json, Integer status_code) {

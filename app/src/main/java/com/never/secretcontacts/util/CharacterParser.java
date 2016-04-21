@@ -47,20 +47,20 @@ public class CharacterParser {
             "yin", "ying", "yo", "yong", "you", "yu", "yuan", "yue", "yun", "za", "zai", "zan", "zang", "zao", "ze", "zei", "zen", "zeng", "zha",
             "zhai", "zhan", "zhang", "zhao", "zhe", "zhen", "zheng", "zhi", "zhong", "zhou", "zhu", "zhua", "zhuai", "zhuan", "zhuang", "zhui",
             "zhun", "zhuo", "zi", "zong", "zou", "zu", "zuan", "zui", "zun", "zuo"};
-    private StringBuilder buffer;
-    private String resource;
-    private static CharacterParser characterParser = new CharacterParser();
+    private StringBuilder buffer_;
+    private String resource_;
+    private static CharacterParser character_parser_ = new CharacterParser();
 
     public static CharacterParser getInstance() {
-        return characterParser;
+        return character_parser_;
     }
 
     public String getResource() {
-        return resource;
+        return resource_;
     }
 
     public void setResource(String resource) {
-        this.resource = resource;
+        this.resource_ = resource;
     }
 
     /** * 汉字转成ASCII码 * * @param chs * @return */
@@ -105,7 +105,7 @@ public class CharacterParser {
     /** * 词组解析 * * @param chs * @return */
     public String getSelling(String chs) {
         String key, value;
-        buffer = new StringBuilder();
+        buffer_ = new StringBuilder();
         for (int i = 0; i < chs.length(); i++) {
             key = chs.substring(i, i + 1);
             if (key.getBytes().length >= 2) {
@@ -116,9 +116,9 @@ public class CharacterParser {
             } else {
                 value = key;
             }
-            buffer.append(value);
+            buffer_.append(value);
         }
-        return buffer.toString();
+        return buffer_.toString();
     }
 
     public String getSpelling() {
