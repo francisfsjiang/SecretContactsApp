@@ -30,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     private ListView sort_list_view_;
     private SideBar side_bar_;
     private TextView login_recommend_text_view_;
+
     /**
      * 显示字母的TextView
      */
@@ -91,25 +92,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(MyApp.getLoginStatus()) {
-            sort_list_view_.setVisibility(View.VISIBLE);
-            side_bar_.setVisibility(View.VISIBLE);
-            search_view_.setVisibility(View.VISIBLE);
-            login_recommend_text_view_.setVisibility(View.GONE);
-        }
-        else {
-            sort_list_view_.setVisibility(View.GONE);
-            side_bar_.setVisibility(View.GONE);
-            search_view_.setVisibility(View.GONE);
-            login_recommend_text_view_.setVisibility(View.VISIBLE);
-        }
-
-        source_data_list_ = filledData(getResources().getStringArray(R.array.date));
-
-        // 根据a-z进行排序源数据
-        Collections.sort(source_data_list_, pinyin_comparator_);
-        sort_adapter_ = new SortAdapter(this, source_data_list_);
-        sort_list_view_.setAdapter(sort_adapter_);
 
 
 //        mClearEditText = VClearEditText) findViewById(R.id.filter_edit);
@@ -138,9 +120,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+
+        if(MyApp.checkLoginStatus()) {
+            sort_list_view_.setVisibility(View.VISIBLE);
+            side_bar_.setVisibility(View.VISIBLE);
+            search_view_.setVisibility(View.VISIBLE);
+            login_recommend_text_view_.setVisibility(View.GONE);
+        }
+        else {
+            sort_list_view_.setVisibility(View.GONE);
+            side_bar_.setVisibility(View.GONE);
+            search_view_.setVisibility(View.GONE);
+            login_recommend_text_view_.setVisibility(View.VISIBLE);
+        }
+
+        invalidateOptionsMenu();
+
+        source_data_list_ = filledData(getResources().getStringArray(R.array.date));
+
+        // 根据a-z进行排序源数据
+        Collections.sort(source_data_list_, pinyin_comparator_);
+        sort_adapter_ = new SortAdapter(this, source_data_list_);
+        sort_list_view_.setAdapter(sort_adapter_);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+
+        boolean[] visible_arr = {true, true, false, false, false};
+        if(MyApp.checkLoginStatus()) {
+            visible_arr[0] = visible_arr[1] = false;
+            visible_arr[2] = visible_arr[3] = visible_arr[4] = true;
+        }
+        for (int i = 0; i < menu.size(); i++)
+            menu.getItem(i).setVisible(visible_arr[i]);
         return true;
     }
 
@@ -156,8 +174,18 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+        else if (id == R.id.menu_register) {
+            Intent intent = new Intent(MainActivity.this, RegisterActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        else if (id == R.id.menu_logout) {
+            MyApp.clearLoginStatus();
+            onResume();
+            return true;
+        }
         //noinspection SimplifiableIfStatement
-        if (id == R.id.menu_settings) {
+        else if (id == R.id.menu_settings) {
             return true;
         }
 

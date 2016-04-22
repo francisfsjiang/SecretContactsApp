@@ -8,12 +8,15 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.HttpURLConnection;
+import java.util.Date;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.Request;
+
+
 
 
 public class MyApp extends Application{
@@ -24,27 +27,46 @@ public class MyApp extends Application{
     public static String URL_SITE = "https://sc.404notfound.top/";
 
     public static String URL_LOGIN = URL_SITE + "api/login";
-
-    private static Boolean login_status_;
+    public static String URL_REGISTER = URL_SITE + "api/register";
 
     private static String auth_key_;
 
     private static Integer auth_key_expire_date_;
 
+    private static SharedPreferences shared_preference_;
+
     @Override
     public void onCreate() {
         super.onCreate();
-        SharedPreferences shared_preference = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
-        login_status_ = shared_preference.getBoolean("login_status", false);
-        auth_key_ = shared_preference.getString("auth_key", "");
-        auth_key_expire_date_ = shared_preference.getInt("auth_key_expire_date", 0);
+        shared_preference_ = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
+        auth_key_ = shared_preference_.getString("auth_key", "");
+        auth_key_expire_date_ = shared_preference_.getInt("auth_key_expire_date", 0);
     }
 
-    public static Boolean getLoginStatus() {
-        return login_status_;
+    public static Boolean checkLoginStatus() {
+        return checkLoginExpireDate();
     }
 
-    public static JSONObject HttpPostJson(String url, JSONObject json, Integer status_code) {
+    public static void clearLoginStatus() {
+        auth_key_ = "";
+        auth_key_expire_date_ = 0;
+    }
+    public static void updateLoginStatus(String auth_key, Integer auth_key_expire_date) {
+        auth_key_ = auth_key;
+        auth_key_expire_date_ = auth_key_expire_date;
+        if(checkLoginExpireDate()) {
+            SharedPreferences.Editor editor =shared_preference_.edit();
+            editor.putString("auth_key", auth_key_);
+            editor.putInt("auth_key_expire_date", auth_key_expire_date_);
+            editor.apply();
+        }
+    }
+
+    public static Boolean checkLoginExpireDate() {
+        return new Date().getTime()/1000 < auth_key_expire_date_;
+    }
+
+    public static JSONObject HttpPostJson(String url, JSONObject json) {
         try {
             OkHttpClient client = new OkHttpClient();
             RequestBody body = RequestBody.create(JSON, json.toString());
@@ -53,17 +75,19 @@ public class MyApp extends Application{
                     .post(body)
                     .build();
             Response response = client.newCall(request).execute();
-            status_code = response.code();
-            if(status_code == HttpURLConnection.HTTP_OK) {
+            if(response.code() == HttpURLConnection.HTTP_OK) {
                 JSONTokener json_tokener = new JSONTokener(response.body().string());
-                return (JSONObject)json_tokener.nextValue();
+                response.body().close();
+                return ((JSONObject)json_tokener.nextValue()).
+                        put("status_code", response.code());
             }
             else {
-                return null;
+
+                return new JSONObject().put("status_code", response.code());
             }
         }
         catch (Exception e) {
-            Log.e("http", "http post json failed. code " + status_code + ". " + e.getMessage());
+            Log.e("http", "http post json failed. " + e.getMessage());
             e.printStackTrace();
             return null;
         }

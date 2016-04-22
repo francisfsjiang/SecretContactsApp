@@ -25,9 +25,9 @@ import java.net.HttpURLConnection;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity {
+public class RegisterActivity extends AppCompatActivity {
 
-    private UserLoginTask auth_task_ = null;
+    private UserRegisterTask auth_task_ = null;
 
     // UI references.
     private EditText email_view_;
@@ -38,7 +38,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_register);
         // Set up the login form.
         email_view_ = (EditText) findViewById(R.id.email);
 
@@ -47,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == R.id.login || id == EditorInfo.IME_NULL) {
-                    attemptLogin();
+                    attemptRegister();
                     return true;
                 }
                 return false;
@@ -58,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptLogin();
+                attemptRegister();
             }
         });
 
@@ -66,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
         progress_view_ = findViewById(R.id.login_progress);
     }
 
-    private void attemptLogin() {
+    private void attemptRegister() {
         if (auth_task_ != null) {
             return;
         }
@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            auth_task_ = new UserLoginTask(email, password);
+            auth_task_ = new UserRegisterTask(email, password);
             auth_task_.execute((Void) null);
         }
     }
@@ -164,39 +164,42 @@ public class LoginActivity extends AppCompatActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Integer> {
+    public class UserRegisterTask extends AsyncTask<Void, Void, Integer> {
 
         private final String mEmail;
         private final String mPassword;
 
-        UserLoginTask(String email, String password) {
+        UserRegisterTask(String email, String password) {
             mEmail = email;
             mPassword = password;
         }
 
         @Override
         protected Integer doInBackground(Void... params) {
+            // TODO: attempt authentication against a network service.
+
             try {
                 JSONObject json = new JSONObject();
                 json.put("email", mEmail);
                 json.put("passwd", mPassword);
-                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_LOGIN, json);
+                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_REGISTER, json);
                 if(resp_json == null) {
                     return -2;
                 }
                 int status_code = resp_json.getInt("status_code");
-                Log.d("http", "code " + status_code);
+                Log.i("http", "code " + status_code);
                 if(status_code == HttpURLConnection.HTTP_OK) {
                     MyApp.updateLoginStatus(
                             resp_json.getString("auth_key"),
                             resp_json.getInt("auth_key_expire_date")
                     );
                     if(MyApp.checkLoginStatus()) {
-                        Log.d("account status", "login success");
+                        Log.i("account status", "register success");
                         return 1;
                     }
                 }
                 return -1;
+
             }
             catch (Exception e) {
                 Log.e("network", "Network failed." + e.getMessage());
@@ -211,15 +214,15 @@ public class LoginActivity extends AppCompatActivity {
             showProgress(false);
 
             if (res == 1) {
-                Toast.makeText(LoginActivity.this, "成功登录", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "成功注册", Toast.LENGTH_SHORT).show();
                 finish();
             }
             else if (res == -1){
-                passwd_view_.setError(getString(R.string.error_incorrect_password));
-                passwd_view_.requestFocus();
+                email_view_.setError(getString(R.string.error_incorrect_register_before));
+                email_view_.requestFocus();
             }
             else {
-                Toast.makeText(LoginActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
+                Toast.makeText(RegisterActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
 
             }
         }
