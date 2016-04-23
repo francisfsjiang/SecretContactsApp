@@ -190,8 +190,8 @@ public class RegisterActivity extends AppCompatActivity {
                 Log.i("http", "code " + status_code);
                 if(status_code == HttpURLConnection.HTTP_OK) {
                     MyApp.updateLoginStatus(
-                            resp_json.getString("auth_key"),
-                            resp_json.getInt("auth_key_expire_date")
+                            resp_json.getString("auth_id"),
+                            resp_json.getString("auth_key")
                     );
                     if(MyApp.checkLoginStatus()) {
                         Log.i("account status", "register success");

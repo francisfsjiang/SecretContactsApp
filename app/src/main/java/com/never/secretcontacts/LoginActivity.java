@@ -185,14 +185,16 @@ public class LoginActivity extends AppCompatActivity {
                     return -2;
                 }
                 int status_code = resp_json.getInt("status_code");
-                Log.d("http", "code " + status_code);
+                Log.i("http", "code " + status_code);
                 if(status_code == HttpURLConnection.HTTP_OK) {
                     MyApp.updateLoginStatus(
-                            resp_json.getString("auth_key"),
-                            resp_json.getInt("auth_key_expire_date")
+                            resp_json.getString("auth_id"),
+                            resp_json.getString("auth_key")
                     );
                     if(MyApp.checkLoginStatus()) {
-                        Log.d("account status", "login success");
+                        Log.i("account status", "login success. ");
+                        Log.i("account status", resp_json.getString("auth_id"));
+                        Log.i("account status", resp_json.getString("auth_key"));
                         return 1;
                     }
                 }

@@ -28,10 +28,10 @@ public class MyApp extends Application{
 
     public static String URL_LOGIN = URL_SITE + "api/login";
     public static String URL_REGISTER = URL_SITE + "api/register";
+    public static String URL_POLLING = URL_SITE + "api/polling";
 
+    private static String auth_id_;
     private static String auth_key_;
-
-    private static Integer auth_key_expire_date_;
 
     private static SharedPreferences shared_preference_;
 
@@ -40,7 +40,6 @@ public class MyApp extends Application{
         super.onCreate();
         shared_preference_ = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
         auth_key_ = shared_preference_.getString("auth_key", "");
-        auth_key_expire_date_ = shared_preference_.getInt("auth_key_expire_date", 0);
     }
 
     public static Boolean checkLoginStatus() {
@@ -48,22 +47,33 @@ public class MyApp extends Application{
     }
 
     public static void clearLoginStatus() {
+        auth_id_ = "";
         auth_key_ = "";
-        auth_key_expire_date_ = 0;
     }
-    public static void updateLoginStatus(String auth_key, Integer auth_key_expire_date) {
+    public static void updateLoginStatus(String auth_id, String auth_key) {
+        auth_id_ = auth_id;
         auth_key_ = auth_key;
-        auth_key_expire_date_ = auth_key_expire_date;
         if(checkLoginExpireDate()) {
             SharedPreferences.Editor editor =shared_preference_.edit();
             editor.putString("auth_key", auth_key_);
-            editor.putInt("auth_key_expire_date", auth_key_expire_date_);
             editor.apply();
         }
     }
 
+    public static JSONObject getAuthJson() {
+        try {
+            return new JSONObject().
+                    put("auth_id", auth_id_).
+                    put("auth_key", auth_key_);
+        }
+        catch (Exception e) {
+            Log.e("auth", "make auth json error. " + e.getMessage());
+            return null;
+        }
+    }
+
     public static Boolean checkLoginExpireDate() {
-        return new Date().getTime()/1000 < auth_key_expire_date_;
+        return !auth_key_.equals("");
     }
 
     public static JSONObject HttpPostJson(String url, JSONObject json) {
@@ -82,7 +92,7 @@ public class MyApp extends Application{
                         put("status_code", response.code());
             }
             else {
-
+                response.body().close();
                 return new JSONObject().put("status_code", response.code());
             }
         }

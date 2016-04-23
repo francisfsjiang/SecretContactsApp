@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,6 +52,23 @@ public class MainActivity extends AppCompatActivity {
      * 根据拼音来排列ListView里面的数据类
      */
     private PinyinComparator pinyin_comparator_;
+
+    private SyncService.SyncBinder sync_binder_;
+
+    private ServiceConnection service_connection_ = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i("service", "service connected");
+            sync_binder_ = (SyncService.SyncBinder) service;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i("service", "service disconnected");
+
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -246,4 +267,5 @@ public class MainActivity extends AppCompatActivity {
         Collections.sort(filterDateList, pinyin_comparator_);
         sort_adapter_.updateListView(filterDateList);
     }
+
 }
