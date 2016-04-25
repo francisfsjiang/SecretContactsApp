@@ -207,6 +207,8 @@ public class MainActivity extends AppCompatActivity {
         }
         //noinspection SimplifiableIfStatement
         else if (id == R.id.menu_settings) {
+            Intent intent = new Intent(MainActivity.this, ContactsEditActivity.class);
+            startActivity(intent);
             return true;
         }
 

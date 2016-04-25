@@ -24,12 +24,14 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/activity_login_title">
-        </activity>
+            android:label="@string/activity_login_title"></activity>
         <activity
             android:name=".RegisterActivity"
-            android:label="@string/activity_register_title">
-        </activity>
+            android:label="@string/activity_register_title"></activity>
+        <activity
+            android:name=".ContactsEditActivity"
+            android:label="@string/title_activity_contacts_edit"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
