@@ -1,64 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.never.secretcontacts.ContactsEditActivity">
 
-    <android.support.design.widget.AppBarLayout
-        android:id="@+id/app_bar"
+    <LinearLayout
+        android:id="@+id/contact_edit_bottons_layout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        android:fitsSystemWindows="true"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <android.support.design.widget.CollapsingToolbarLayout
-            android:id="@+id/toolbar_layout"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignParentBottom="true"
+        >
+        <Button
+            android:id="@+id/contact_new_item_button"
+            style="?android:textAppearanceSmall"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_marginEnd="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_weight="1"
+            android:text="@string/action_contact_new_item"
+            android:textStyle="bold"
+            android:theme="@style/ContactActionButton"
+            />
+        <Button
+            android:id="@+id/contact_cancel_button"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_marginEnd="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_weight="1"
+            android:text="@string/action_contact_cancel"
+            android:textStyle="bold"
+            android:theme="@style/ContactActionButton"
+            />
+        <Button
+            android:id="@+id/contact_save_button"
+            style="?android:textAppearanceSmall"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_marginEnd="@dimen/contact_edit_buttons_margin_horizontal"
+            android:layout_weight="1"
+            android:text="@string/action_contact_save"
+            android:textStyle="bold"
+            android:theme="@style/ContactActionButton"
+            />
+    </LinearLayout>
 
-            <android.support.v7.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:popupTheme="@style/AppTheme.PopupOverlay" />
-
-        </android.support.design.widget.CollapsingToolbarLayout>
-    </android.support.design.widget.AppBarLayout>
-
-    <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/contact_edit_bottons_layout"
         >
 
         <LinearLayout
+            android:id="@+id/item_list_phone"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingTop="20dp"
             >
 
-            <include layout="@layout/content_contacts_item" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/item_list_email"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            >
 
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
-            <include layout="@layout/content_contacts_item" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/item_list_address"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            >
+
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/item_list_memo"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="20dp"
+            >
 
         </LinearLayout>
 
-    </android.support.v4.widget.NestedScrollView>
+    </ScrollView>
 
-</android.support.design.widget.CoordinatorLayout>
+</RelativeLayout>

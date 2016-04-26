@@ -224,8 +224,7 @@ public class MainActivity extends AppCompatActivity {
         List<Contact> mSortList = new ArrayList<Contact>();
 
         for(int i=0; i<date.length; i++){
-            Contact sortModel = new Contact();
-            sortModel.setName(date[i]);
+            Contact sortModel = new Contact(date[i]);
             //汉字转换成拼音
             String pinyin = character_parser_.getSelling(date[i]);
             String sortString = pinyin.substring(0, 1).toUpperCase();

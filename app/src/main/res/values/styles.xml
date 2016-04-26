@@ -17,4 +17,10 @@
 
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+
+    <style name="ContactActionButton" parent="Theme.AppCompat.Light">
+        <item name="colorControlHighlight">#ffffff</item>
+        <item name="colorButtonNormal">#e7e7e7</item>
+    </style>
+
 </resources>

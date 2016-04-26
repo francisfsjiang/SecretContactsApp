@@ -2,10 +2,16 @@
 <resources>
 
     <string-array name="spinner_phone_type">
-        <item>手机</item>
+        <item>个人</item>
         <item>公司</item>
         <item>住宅</item>
         <item>传真</item>
+        <item>其他</item>
+    </string-array>
+
+    <string-array name="spinner_email_type">
+        <item>个人</item>
+        <item>公司</item>
         <item>其他</item>
     </string-array>
 
@@ -15,10 +21,16 @@
         <item>其他</item>
     </string-array>
 
-    <string-array name="spinner_email_type">
-        <item>个人</item>
-        <item>公司</item>
+    <string-array name="spinner_memo_type">
+        <item>备忘</item>
         <item>其他</item>
+    </string-array>
+
+    <string-array name="contact_new_item_select_option">
+        <item>电话号码</item>
+        <item>电子邮箱</item>
+        <item>地址</item>
+        <item>备忘</item>
     </string-array>
 
     <string-array name="date">
