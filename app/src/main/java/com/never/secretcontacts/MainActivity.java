@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -65,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Log.i("service", "service disconnected");
-
         }
     };
 
@@ -173,10 +174,11 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
 
-        boolean[] visible_arr = {true, true, false, false, false};
+        boolean[] visible_arr = {true, true, false, false, false, false, false};
         if(MyApp.checkLoginStatus()) {
             visible_arr[0] = visible_arr[1] = false;
             visible_arr[2] = visible_arr[3] = visible_arr[4] = true;
+            visible_arr[5] = visible_arr[6] = true;
         }
         for (int i = 0; i < menu.size(); i++)
             menu.getItem(i).setVisible(visible_arr[i]);
@@ -201,13 +203,33 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
         else if (id == R.id.menu_logout) {
-            MyApp.clearLoginStatus();
-            onResume();
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setMessage("确认退出吗？此操作将会清除您的密钥，您下次将需要密钥恢复密码来恢复密钥");
+            builder.setTitle("提示");
+            builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    MyApp.clearLoginStatus();
+                    onResume();
+                }
+            });
+            builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.create().show();
             return true;
         }
         //noinspection SimplifiableIfStatement
         else if (id == R.id.menu_settings) {
+            return true;
+        }
+        else if (id == R.id.menu_new) {
             Intent intent = new Intent(MainActivity.this, ContactsEditActivity.class);
+            intent.putExtra("contact_id", "");
             startActivity(intent);
             return true;
         }

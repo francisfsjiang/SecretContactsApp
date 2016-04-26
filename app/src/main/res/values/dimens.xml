@@ -14,4 +14,10 @@
     <dimen name="contact_edit_spinner_padding_horizontal">20dp</dimen>
     <dimen name="contact_edit_buttons_margin_horizontal">3dp</dimen>
 
+    <dimen name="contact_edit_spearate_bar_padding_start">10dp</dimen>
+    <dimen name="contact_edit_spearate_bar_padding_top">4dp</dimen>
+    <dimen name="contact_edit_spearate_bar_padding_bottom">4dp</dimen>
+
+    <dimen name="contact_edit_name_margin_vertical">20dp</dimen>
+    <dimen name="contact_edit_name_margin_horizontal">30dp</dimen>
 </resources>

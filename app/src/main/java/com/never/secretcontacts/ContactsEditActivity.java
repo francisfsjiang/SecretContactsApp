@@ -2,6 +2,7 @@ package com.never.secretcontacts;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -12,8 +13,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.Toast;
+import android.widget.TextView;
 
+import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactItem;
 
 public class ContactsEditActivity extends AppCompatActivity {
@@ -21,12 +23,18 @@ public class ContactsEditActivity extends AppCompatActivity {
 //    private List<View> item_view_list_ = new ArrayList<>();
 
     private Button new_item_button_;
+    private Button change_name_button_;
+
+    private TextView contact_name_view_;
 
     private LinearLayout item_list_phone_;
     private LinearLayout item_list_email_;
     private LinearLayout item_list_address_;
     private LinearLayout item_list_memo_;
 
+    private String contact_id_;
+
+    private String contact_name_;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +45,40 @@ public class ContactsEditActivity extends AppCompatActivity {
         item_list_email_ = (LinearLayout) findViewById(R.id.item_list_email);
         item_list_address_ = (LinearLayout) findViewById(R.id.item_list_address);
         item_list_memo_ = (LinearLayout) findViewById(R.id.item_list_memo);
+
+        change_name_button_ = (Button) findViewById(R.id.change_name_button);
+        change_name_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(ContactsEditActivity.this);
+                builder.setTitle("请输入新联系人名称");
+
+                final EditText edit_text = new EditText(ContactsEditActivity.this);
+                edit_text.setText(contact_name_);
+                builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (edit_text.getText().toString().equals("")) {
+                            edit_text.setError("不能为空");
+                        }
+                        else {
+                            dialog.dismiss();
+                            contact_name_ = edit_text.getText().toString();
+                            contact_name_view_.setText(contact_name_);
+                        }
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.setView(edit_text);
+                builder.show();
+            }
+        });
+        contact_name_view_ = (TextView) findViewById(R.id.contact_name);
 
         new_item_button_ = (Button) findViewById(R.id.contact_new_item_button);
         new_item_button_.setOnClickListener(new View.OnClickListener() {
@@ -52,12 +94,30 @@ public class ContactsEditActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which)
                     {
-                        Toast.makeText(ContactsEditActivity.this, "选择的城市为：" + which, Toast.LENGTH_SHORT).show();
+                        addNewItemView(ContactItem.ItemType.values()[which]);
                     }
                 });
                 builder.show();
             }
         });
+
+        Intent intent = getIntent();
+        contact_id_ = intent.getStringExtra("contact_id");
+
+        if(contact_id_.equals("")) {
+            contact_name_ = "新建联系人";
+            contact_name_view_.setText(contact_name_);
+            addNewItemView(ContactItem.ItemType.PHONE);
+            addNewItemView(ContactItem.ItemType.EMAIL);
+            addNewItemView(ContactItem.ItemType.ADDRESS);
+            addNewItemView(ContactItem.ItemType.MEMO);
+        }
+        else {
+
+        }
+    }
+
+    private void loadContactInfo() {
 
     }
 
@@ -154,4 +214,9 @@ public class ContactsEditActivity extends AppCompatActivity {
                 getResources().getStringArray(res_id)
         );
     }
+
+    private void saveContact() {
+        Contact contact = new Contact(contact_name_);
+    }
+
 }

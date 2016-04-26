@@ -5,8 +5,10 @@
     <string name="activity_contacts_edit_title">联系人</string>
 
     <string name="menu_login">登录</string>
-    <string name="menu_logout">登出</string>
     <string name="menu_register">注册</string>
+    <string name="menu_logout">登出</string>
+    <string name="menu_new">添加联系人</string>
+    <string name="menu_delete">删除联系人</string>
     <string name="menu_sync_now">立即同步</string>
     <string name="menu_settings">设置</string>
 
