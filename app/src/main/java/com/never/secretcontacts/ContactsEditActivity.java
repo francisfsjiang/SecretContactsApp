@@ -23,6 +23,7 @@ public class ContactsEditActivity extends AppCompatActivity {
 //    private List<View> item_view_list_ = new ArrayList<>();
 
     private Button new_item_button_;
+    private Button save_button_;
     private Button change_name_button_;
 
     private TextView contact_name_view_;
@@ -53,7 +54,11 @@ public class ContactsEditActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(ContactsEditActivity.this);
                 builder.setTitle("请输入新联系人名称");
 
-                final EditText edit_text = new EditText(ContactsEditActivity.this);
+                TextInputLayout input_layout =(TextInputLayout) getLayoutInflater().inflate(
+                        R.layout.dialog_change_contact_name,
+                        null
+                );
+                final EditText edit_text = (EditText)input_layout.getChildAt(0);
                 edit_text.setText(contact_name_);
                 builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                     @Override
@@ -74,7 +79,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
-                builder.setView(edit_text);
+                builder.setView(input_layout);
                 builder.show();
             }
         });
@@ -115,10 +120,6 @@ public class ContactsEditActivity extends AppCompatActivity {
         else {
 
         }
-    }
-
-    private void loadContactInfo() {
-
     }
 
     private void addNewItemView(ContactItem.ItemType type) {
@@ -217,6 +218,30 @@ public class ContactsEditActivity extends AppCompatActivity {
 
     private void saveContact() {
         Contact contact = new Contact(contact_name_);
+        saveItems(contact, item_list_phone_  , ContactItem.ItemType.PHONE.getValue());
+        saveItems(contact, item_list_email_  , ContactItem.ItemType.EMAIL.getValue());
+        saveItems(contact, item_list_address_, ContactItem.ItemType.ADDRESS.getValue());
+        saveItems(contact, item_list_memo_   , ContactItem.ItemType.MEMO.getValue());
+
+    }
+
+    private void saveItems(Contact contact, LinearLayout view, int type) {
+        ContactItem item;
+        LinearLayout item_view;
+        Spinner item_spinner;
+        EditText item_editor;
+        int count  = view.getChildCount();
+        for(int i = 0; i < count; ++i) {
+            item_view = (LinearLayout)view.getChildAt(i);
+            item_spinner = (Spinner)item_view.getChildAt(0);
+            item_editor = (EditText)item_view.getChildAt(1);
+            item = new ContactItem(
+                    type,
+                    item_spinner.getSelectedItemPosition(),
+                    item_editor.getText().toString()
+            );
+            contact.item_list_.add(item);
+        }
     }
 
 }

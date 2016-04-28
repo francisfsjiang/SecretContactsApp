@@ -174,11 +174,11 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
 
-        boolean[] visible_arr = {true, true, false, false, false, false, false};
+        boolean[] visible_arr = {true, true, false, false, false, false, false, false};
         if(MyApp.checkLoginStatus()) {
             visible_arr[0] = visible_arr[1] = false;
             visible_arr[2] = visible_arr[3] = visible_arr[4] = true;
-            visible_arr[5] = visible_arr[6] = true;
+            visible_arr[5] = visible_arr[6] = visible_arr[7] = true;
         }
         for (int i = 0; i < menu.size(); i++)
             menu.getItem(i).setVisible(visible_arr[i]);
@@ -225,6 +225,11 @@ public class MainActivity extends AppCompatActivity {
         }
         //noinspection SimplifiableIfStatement
         else if (id == R.id.menu_settings) {
+            return true;
+        }
+        else if (id == R.id.menu_key) {
+            Intent intent = new Intent(MainActivity.this, KeyActivity.class);
+            startActivity(intent);
             return true;
         }
         else if (id == R.id.menu_new) {

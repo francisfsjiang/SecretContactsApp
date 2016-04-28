@@ -23,14 +23,19 @@
         android:title="@string/menu_delete"
         app:showAsAction="never" />
     <item
-        android:id="@+id/menu_logout"
-        android:orderInCategory="100"
-        android:title="@string/menu_logout"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/menu_sync"
         android:orderInCategory="100"
         android:title="@string/menu_sync_now"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_key"
+        android:orderInCategory="100"
+        android:title="@string/menu_key"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_logout"
+        android:orderInCategory="100"
+        android:title="@string/menu_logout"
         app:showAsAction="never" />
     <item
         android:id="@+id/menu_settings"

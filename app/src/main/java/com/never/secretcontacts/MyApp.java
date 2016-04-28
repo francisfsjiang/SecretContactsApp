@@ -4,19 +4,19 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import com.never.secretcontacts.util.ContactsManager;
+import com.never.secretcontacts.util.SecretKeyManager;
+
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.HttpURLConnection;
-import java.util.Date;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.Request;
-
-
 
 
 public class MyApp extends Application{
@@ -29,21 +29,31 @@ public class MyApp extends Application{
     public static String URL_LOGIN = URL_SITE + "api/login";
     public static String URL_REGISTER = URL_SITE + "api/register";
     public static String URL_POLLING = URL_SITE + "api/polling";
+    public static String URL_KEY = URL_SITE + "api/key";
 
     private static String auth_id_;
     private static String auth_key_;
 
     private static SharedPreferences shared_preference_;
 
+    public static ContactsManager contacts_manager_;
+
+    public static SecretKeyManager key_manager_;
+
     @Override
     public void onCreate() {
         super.onCreate();
         shared_preference_ = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
         auth_key_ = shared_preference_.getString("auth_key", "");
+        auth_id_ = shared_preference_.getString("auth_id", "");
+
+        key_manager_ = SecretKeyManager.getSecretKeyManager(shared_preference_);
+        contacts_manager_ = ContactsManager.getContactsManager(getApplicationContext());
+
     }
 
     public static Boolean checkLoginStatus() {
-        return checkLoginExpireDate();
+        return !auth_key_.equals("") && !auth_id_.equals("");
     }
 
     public static void clearLoginStatus() {
@@ -53,11 +63,10 @@ public class MyApp extends Application{
     public static void updateLoginStatus(String auth_id, String auth_key) {
         auth_id_ = auth_id;
         auth_key_ = auth_key;
-        if(checkLoginExpireDate()) {
-            SharedPreferences.Editor editor =shared_preference_.edit();
-            editor.putString("auth_key", auth_key_);
-            editor.apply();
-        }
+        SharedPreferences.Editor editor =shared_preference_.edit();
+        editor.putString("auth_key", auth_key_);
+        editor.putString("auth_id", auth_id_);
+        editor.apply();
     }
 
     public static JSONObject getAuthJson() {
@@ -70,10 +79,6 @@ public class MyApp extends Application{
             Log.e("auth", "make auth json error. " + e.getMessage());
             return null;
         }
-    }
-
-    public static Boolean checkLoginExpireDate() {
-        return !auth_key_.equals("");
     }
 
     public static JSONObject HttpPostJson(String url, JSONObject json) {

@@ -31,6 +31,9 @@
         <activity
             android:name=".ContactsEditActivity"
             android:label="@string/activity_contacts_edit_title" ></activity>
+        <activity
+            android:name=".KeyActivity"
+            android:label="@string/activity_key_title"></activity>
     </application>
 
 </manifest>

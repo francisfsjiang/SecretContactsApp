@@ -198,7 +198,12 @@ public class RegisterActivity extends AppCompatActivity {
                         return 1;
                     }
                 }
-                return -1;
+                else if (status_code == HttpURLConnection.HTTP_FORBIDDEN) {
+                    return -1;
+                }
+                else {
+                    return -2;
+                }
 
             }
             catch (Exception e) {
