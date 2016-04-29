@@ -98,7 +98,6 @@ public class SortAdapter extends BaseAdapter implements SectionIndexer{
                 return i;
             }
         }
-
         return -1;
     }
 

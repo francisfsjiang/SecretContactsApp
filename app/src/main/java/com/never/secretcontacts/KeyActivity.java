@@ -38,7 +38,9 @@ public class KeyActivity extends AppCompatActivity {
 
     private TextView recovery_key_view_;
     private TextView recovery_key_hint_view_;
+
     private Button key_get_button_;
+    private Button key_recover_button_;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +52,37 @@ public class KeyActivity extends AppCompatActivity {
         key_get_button_.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptGetKey();
+                attemptGetKey("");
+            }
+        });
+
+        key_recover_button_ = (Button) findViewById(R.id.key_recover_button);
+        key_recover_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(KeyActivity.this);
+                builder.setTitle("请输入您记下的密钥恢复密码");
+
+                TextInputLayout input_layout =(TextInputLayout) getLayoutInflater().inflate(
+                        R.layout.dialog_change_contact_name,
+                        null
+                );
+                final EditText edit_text = (EditText)input_layout.getChildAt(0);
+                builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        attemptGetKey(edit_text.getText().toString());
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.setView(input_layout);
+                builder.show();
             }
         });
 
@@ -65,7 +97,7 @@ public class KeyActivity extends AppCompatActivity {
         is_key_got_ = false;
     }
 
-    private void attemptGetKey() {
+    private void attemptGetKey(String recovery_key) {
         if (key_task_ != null) {
             return;
         }
@@ -82,7 +114,7 @@ public class KeyActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            key_task_ = new GetKeyTask(true);
+            key_task_ = new GetKeyTask(recovery_key);
             key_task_.execute((Void) null);
         }
     }
@@ -127,8 +159,10 @@ public class KeyActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (is_key_got_) {
 
+            recovery_key_view_.setVisibility(View.GONE);
+
             AlertDialog.Builder builder = new AlertDialog.Builder(KeyActivity.this);
-            builder.setTitle("请输入新联系人名称");
+            builder.setTitle("请输入您记下的密钥恢复密码");
 
             TextInputLayout input_layout =(TextInputLayout) getLayoutInflater().inflate(
                     R.layout.dialog_change_contact_name,
@@ -142,6 +176,7 @@ public class KeyActivity extends AppCompatActivity {
                         KeyActivity.this.finish();
                     }
                     else {
+                        recovery_key_view_.setVisibility(View.VISIBLE);
                         Toast.makeText(KeyActivity.this, "密钥恢复密码错误", Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -166,10 +201,10 @@ public class KeyActivity extends AppCompatActivity {
      */
     public class GetKeyTask extends AsyncTask<Void, Void, Integer> {
 
-        private Boolean is_renew_ = false;
+        private String input_recovery_key_;
 
-        GetKeyTask(Boolean is_renew) {
-            is_renew_ = is_renew;
+        GetKeyTask(String recovery_key) {
+            input_recovery_key_ = recovery_key;
         }
 
         @Override
@@ -179,30 +214,65 @@ public class KeyActivity extends AppCompatActivity {
                 if(json == null) {
                     return -1;
                 }
-                json.put("renew", is_renew_);
-                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_KEY, json);
-                if(resp_json == null) {
-                    return -2;
-                }
-                int status_code = resp_json.getInt("status_code");
-                Log.i("http", "code " + status_code);
-                if(status_code == HttpURLConnection.HTTP_OK) {
-                    Log.i("key", "get key success. ");
-                    Log.i("key", resp_json.getString("pri_key"));
-                    Log.i("key", resp_json.getString("pub_key"));
-                    Log.i("key", resp_json.getString("recovery_key"));
-                    MyApp.key_manager_.saveKeyPair(
-                            resp_json.getString("pri_key"),
-                            resp_json.getString("pub_key")
-                    );
-                    recovery_key_ = resp_json.getString("recovery_key");
-                    return 1;
-                }
-                else if (status_code == HttpURLConnection.HTTP_FORBIDDEN) {
-                    return -1;
+                if(!input_recovery_key_.equals("")) {
+                    json.put("recover", true);
+                    json.put("recovery_key", input_recovery_key_);
+                    JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_KEY, json);
+                    if(resp_json == null) {
+                        return -2;
+                    }
+                    int status_code = resp_json.getInt("status_code");
+                    Log.i("http", "code " + status_code);
+                    if(status_code == HttpURLConnection.HTTP_OK) {
+                        Log.i("key", "recover key success. ");
+                        Log.i("key", resp_json.getString("pri_key"));
+                        Log.i("key", resp_json.getString("pub_key"));
+                        Log.i("key", resp_json.getString("recovery_key"));
+                        MyApp.key_manager_.saveKeyPair(
+                                resp_json.getString("pri_key"),
+                                resp_json.getString("pub_key")
+                        );
+                        return 1;
+                    }
+                    else if (status_code == HttpURLConnection.HTTP_FORBIDDEN) {
+                        return -1;
+                    }
+                    else if (status_code == HttpURLConnection.HTTP_BAD_REQUEST) {
+                        return -4;
+                    }
+                    else {
+                        return -2;
+                    }
                 }
                 else {
-                    return -2;
+                    json.put("recover", false);
+                    JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_KEY, json);
+                    if(resp_json == null) {
+                        return -2;
+                    }
+                    int status_code = resp_json.getInt("status_code");
+                    Log.i("http", "code " + status_code);
+                    if(status_code == HttpURLConnection.HTTP_OK) {
+                        Log.i("key", "get key success. ");
+                        Log.i("key", resp_json.getString("pri_key"));
+                        Log.i("key", resp_json.getString("pub_key"));
+                        Log.i("key", resp_json.getString("recovery_key"));
+                        MyApp.key_manager_.saveKeyPair(
+                                resp_json.getString("pri_key"),
+                                resp_json.getString("pub_key")
+                        );
+                        recovery_key_ = resp_json.getString("recovery_key");
+                        return 1;
+                    }
+                    else if (status_code == HttpURLConnection.HTTP_FORBIDDEN) {
+                        return -1;
+                    }
+                    else if (status_code == HttpURLConnection.HTTP_CONFLICT) {
+                        return -3;
+                    }
+                    else {
+                        return -2;
+                    }
                 }
             }
             catch (Exception e) {
@@ -223,13 +293,26 @@ public class KeyActivity extends AppCompatActivity {
                 recovery_key_view_.setVisibility(View.VISIBLE);
                 recovery_key_hint_view_.setVisibility(View.VISIBLE);
                 key_get_button_.setVisibility(View.GONE);
+                key_recover_button_.setVisibility(View.GONE);
+                is_key_got_ = true;
+                if (!input_recovery_key_.equals("")) {
+                    KeyActivity.this.finish();
+                }
             }
             else if (res == -1){
-                Toast.makeText(KeyActivity.this, "未知错误", Toast.LENGTH_SHORT).show();
+                Toast.makeText(KeyActivity.this, "用户验证失败，请重新验证", Toast.LENGTH_SHORT).show();
+            }
+            else if (res == -2){
+                Toast.makeText(KeyActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
+            }
+            else if (res == -3){
+                Toast.makeText(KeyActivity.this, "该账户已设有密钥，请输入您的密钥恢复密码", Toast.LENGTH_LONG).show();
+            }
+            else if (res == -4){
+                Toast.makeText(KeyActivity.this, "密钥恢复密码错误", Toast.LENGTH_LONG).show();
             }
             else {
-                Toast.makeText(KeyActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(KeyActivity.this, "未知错误", Toast.LENGTH_SHORT).show();
             }
         }
 

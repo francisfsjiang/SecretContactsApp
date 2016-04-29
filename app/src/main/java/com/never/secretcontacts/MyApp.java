@@ -56,6 +56,10 @@ public class MyApp extends Application{
         return !auth_key_.equals("") && !auth_id_.equals("");
     }
 
+    public static Boolean checkKeyStatus() {
+        return key_manager_.haveKeys();
+    }
+
     public static void clearLoginStatus() {
         auth_id_ = "";
         auth_key_ = "";

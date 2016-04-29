@@ -33,11 +33,13 @@
                 android:id="@+id/recovery_key_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="12pt"
-                android:layout_marginLeft="40dp"
-                android:layout_marginRight="40dp"
+                android:textSize="16pt"
+                android:textColor="@color/black"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:paddingTop="40dp"
                 android:paddingBottom="40dp"
+                android:textAlignment="center"
                 />
 
             <TextView
@@ -59,6 +61,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/action_get_key"
+                android:textStyle="bold" />
+            <Button
+                android:id="@+id/key_recover_button"
+                style="?android:textAppearanceSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/action_recover_key"
                 android:textStyle="bold" />
 
         </LinearLayout>
