@@ -141,8 +141,8 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
-//        Intent bind_intent = new Intent(this, SyncService.class);
-//        bindService(bind_intent, service_connection_, BIND_AUTO_CREATE);
+        Intent bind_intent = new Intent(this, SyncService.class);
+        bindService(bind_intent, service_connection_, BIND_AUTO_CREATE);
 
         Intent service_intent = new Intent(this, SyncService.class);
         startService(service_intent);
