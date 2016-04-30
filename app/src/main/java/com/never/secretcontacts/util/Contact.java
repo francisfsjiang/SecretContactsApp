@@ -13,21 +13,22 @@ import java.util.List;
 public class Contact {
 
 
+    private String id_;
     private String name_;   //显示的数据
     private String sortLetters_;  //显示数据拼音的首字母
 
     public List<ContactItem> item_list_ = new ArrayList<>();
 
-    public Contact(String name){
+    public Contact(String name, String id){
         name_ = name;
-
+        id_ = id;
     }
 
     public static Contact loadContactFromJsonString(String contact_str) {
         try {
             JSONTokener tokener = new JSONTokener(contact_str);
             JSONObject json = (JSONObject) tokener.nextValue();
-            Contact contact = new Contact(json.getString("name"));
+            Contact contact = new Contact(json.getString("name"), json.getString("id"));
             JSONArray item_arr = json.getJSONArray("items");
             JSONArray tmp_arr;
             for(int i = 0; i < item_arr.length(); ++i) {
@@ -60,6 +61,7 @@ public class Contact {
         try {
             JSONObject json = new JSONObject().
                     put("name", contact.getName()).
+                    put("id", contact.getId()).
                     put("items", json_items);
             return json.toString();
         }
@@ -70,6 +72,12 @@ public class Contact {
 
     }
 
+    public String getId() {
+        return id_;
+    }
+    public void setId(String id_) {
+        this.id_ = id_;
+    }
     public String getName() {
         return name_;
     }

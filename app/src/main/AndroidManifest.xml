@@ -34,6 +34,8 @@
         <activity
             android:name=".KeyActivity"
             android:label="@string/activity_key_title"></activity>
+        <service android:name=".SyncService"></service>
+        <receiver android:name=".SyncService$AlarmReceiver"></receiver>
     </application>
 
 </manifest>

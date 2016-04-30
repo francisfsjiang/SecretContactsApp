@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * 汉字转换成拼音的类
      */
-    private CharacterParser character_parser_;
     private List<Contact> source_data_list_;
 
     /**
@@ -55,13 +54,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private PinyinComparator pinyin_comparator_;
 
-    private SyncService.SyncBinder sync_binder_;
+    private SyncService.SyncBinder sync_service_binder_;
 
     private ServiceConnection service_connection_ = new ServiceConnection() {
         @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
+        public void onServiceConnected(ComponentName name, IBinder service_binder) {
             Log.i("service", "service connected");
-            sync_binder_ = (SyncService.SyncBinder) service;
+            sync_service_binder_ = (SyncService.SyncBinder) service_binder;
         }
 
         @Override
@@ -79,9 +78,9 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         //实例化汉字转拼音类
-        character_parser_ = CharacterParser.getInstance();
 
         pinyin_comparator_ = new PinyinComparator();
+        character_parser_ = CharacterParser.getInstance();
 
         search_view_ = (SearchView) findViewById(R.id.search_view);
         login_recommend_text_view_ = (TextView) findViewById(R.id.login_recommend_text);
@@ -111,6 +110,10 @@ public class MainActivity extends AppCompatActivity {
                                     int position, long id) {
                 //这里要利用adapter.getItem(position)来获取当前position所对应的对象
                 Toast.makeText(getApplication(), ((Contact) sort_adapter_.getItem(position)).getName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, ContactsEditActivity.class);
+                intent.putExtra("contact_id", ((Contact) sort_adapter_.getItem(position)).getId());
+                startActivity(intent);
+
             }
         });
 
@@ -138,6 +141,11 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
+//        Intent bind_intent = new Intent(this, SyncService.class);
+//        bindService(bind_intent, service_connection_, BIND_AUTO_CREATE);
+
+        Intent service_intent = new Intent(this, SyncService.class);
+        startService(service_intent);
 
     }
 
@@ -160,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
 
         invalidateOptionsMenu();
 
-        source_data_list_ = filledData(getResources().getStringArray(R.array.date));
+        source_data_list_ = MyApp.contacts_manager_.getAllContacts();
 
         // 根据a-z进行排序源数据
         Collections.sort(source_data_list_, pinyin_comparator_);
@@ -238,37 +246,14 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
             return true;
         }
+        else if (id == R.id.menu_sync) {
+            sync_service_binder_.syncNow();
+        }
 
         return super.onOptionsItemSelected(item);
     }
 
-    /**
-     * 为ListView填充数据
-     * @param date
-     * @return
-     */
-    private List<Contact> filledData(String [] date){
-        List<Contact> mSortList = new ArrayList<Contact>();
-
-        for(int i=0; i<date.length; i++){
-            Contact sortModel = new Contact(date[i]);
-            //汉字转换成拼音
-            String pinyin = character_parser_.getSelling(date[i]);
-            String sortString = pinyin.substring(0, 1).toUpperCase();
-
-            // 正则表达式，判断首字母是否是英文字母
-            if(sortString.matches("[A-Z]")){
-                sortModel.setSortLetters(sortString.toUpperCase());
-            }else{
-                sortModel.setSortLetters("#");
-            }
-
-            mSortList.add(sortModel);
-        }
-        return mSortList;
-
-    }
-
+    private CharacterParser character_parser_;
     /**
      * 根据输入框中的值来过滤数据并更新ListView
      * @param filterStr
@@ -294,6 +279,12 @@ public class MainActivity extends AppCompatActivity {
         // 根据a-z进行排序
         Collections.sort(filterDateList, pinyin_comparator_);
         sort_adapter_.updateListView(filterDateList);
+    }
+
+    @Override
+    protected void onDestroy() {
+        unbindService(service_connection_);
+        super.onDestroy();
     }
 
 }

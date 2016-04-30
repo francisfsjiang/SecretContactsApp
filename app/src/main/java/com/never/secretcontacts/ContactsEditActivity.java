@@ -33,9 +33,7 @@ public class ContactsEditActivity extends AppCompatActivity {
     private LinearLayout item_list_address_;
     private LinearLayout item_list_memo_;
 
-    private String contact_id_;
-
-    private String contact_name_;
+    private Contact contact_;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +57,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                         null
                 );
                 final EditText edit_text = (EditText)input_layout.getChildAt(0);
-                edit_text.setText(contact_name_);
+                edit_text.setText(contact_.getName());
                 builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -68,8 +66,8 @@ public class ContactsEditActivity extends AppCompatActivity {
                         }
                         else {
                             dialog.dismiss();
-                            contact_name_ = edit_text.getText().toString();
-                            contact_name_view_.setText(contact_name_);
+                            contact_.setName(edit_text.getText().toString());
+                            contact_name_view_.setText(contact_.getName());
                         }
                     }
                 });
@@ -106,19 +104,31 @@ public class ContactsEditActivity extends AppCompatActivity {
             }
         });
 
-        Intent intent = getIntent();
-        contact_id_ = intent.getStringExtra("contact_id");
+        save_button_ = (Button) findViewById(R.id.contact_save_button);
+        save_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveContact();
+                finish();
+            }
+        });
 
-        if(contact_id_.equals("")) {
-            contact_name_ = "新建联系人";
-            contact_name_view_.setText(contact_name_);
+        Intent intent = getIntent();
+        contact_ = new Contact("新建联系人", intent.getStringExtra("contact_id"));
+
+        if(contact_.getId().equals("")) {
+            contact_name_view_.setText(contact_.getName());
             addNewItemView(ContactItem.ItemType.PHONE);
             addNewItemView(ContactItem.ItemType.EMAIL);
             addNewItemView(ContactItem.ItemType.ADDRESS);
             addNewItemView(ContactItem.ItemType.MEMO);
         }
         else {
-
+            contact_ = MyApp.contacts_manager_.getContact(contact_.getId());
+            contact_name_view_.setText(contact_.getName());
+            for (ContactItem item: contact_.item_list_) {
+                addNewItemView(item);
+            }
         }
     }
 
@@ -217,11 +227,17 @@ public class ContactsEditActivity extends AppCompatActivity {
     }
 
     private void saveContact() {
-        Contact contact = new Contact(contact_name_);
+        Contact contact = new Contact(contact_.getName(), contact_.getId());
         saveItems(contact, item_list_phone_  , ContactItem.ItemType.PHONE.getValue());
         saveItems(contact, item_list_email_  , ContactItem.ItemType.EMAIL.getValue());
         saveItems(contact, item_list_address_, ContactItem.ItemType.ADDRESS.getValue());
         saveItems(contact, item_list_memo_   , ContactItem.ItemType.MEMO.getValue());
+        if (contact_.getId().equals("")) {
+            MyApp.contacts_manager_.createContact(contact);
+        }
+        else {
+            MyApp.contacts_manager_.updateContact(contact);
+        }
 
     }
 
@@ -231,10 +247,10 @@ public class ContactsEditActivity extends AppCompatActivity {
         Spinner item_spinner;
         EditText item_editor;
         int count  = view.getChildCount();
-        for(int i = 0; i < count; ++i) {
+        for(int i = 1; i < count; ++i) {
             item_view = (LinearLayout)view.getChildAt(i);
             item_spinner = (Spinner)item_view.getChildAt(0);
-            item_editor = (EditText)item_view.getChildAt(1);
+            item_editor = (EditText) ((TextInputLayout)item_view.getChildAt(1)).getChildAt(0);
             item = new ContactItem(
                     type,
                     item_spinner.getSelectedItemPosition(),
