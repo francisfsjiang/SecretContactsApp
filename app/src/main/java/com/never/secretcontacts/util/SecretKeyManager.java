@@ -68,7 +68,7 @@ public class SecretKeyManager {
     }
 
 
-    public byte[] encryptByPublicKey(String text)
+    public String encryptByPublicKey(String text)
             throws Exception {
         RSAPublicKey publicKey = getPublicKeyFromString(pub_key_);
         byte[] data = text.getBytes();
@@ -94,12 +94,13 @@ public class SecretKeyManager {
         }
         byte[] encryptedData = out.toByteArray();
         out.close();
-        return encryptedData;
+        return Base64.encodeToString(encryptedData, Base64.DEFAULT);
     }
 
 
-    public String decryptByPrivateKey(byte[] encryptedData)
+    public String decryptByPrivateKey(String data)
             throws Exception {
+        byte[] encryptedData = Base64.decode(data, Base64.DEFAULT);
         RSAPrivateKey privateKey = getPrivateKeyFromString(pri_key_);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());

@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static final boolean[] menu_item_visible_unlogged        = {true, true, false, false, false, false, false, false};
-    private static final boolean[] menu_item_visible_logged_no_key   = {false, false, true, true, true, true, true, true};
+    private static final boolean[] menu_item_visible_logged_no_key   = {false, false, true, true, false, true, true, true};
     private static final boolean[] menu_item_visible_logged_with_key = {false, false, true, true, true, false, true, true};
 
 

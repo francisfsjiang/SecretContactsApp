@@ -147,9 +147,10 @@ public class SyncService extends Service{
         }
 
         private Boolean processPollingList(JSONObject json) {
-            Map<String, List<String>> contacts_map, contacts_map_from_server;
-            contacts_map = MyApp.contacts_manager_.getAllContactsMap();
-            contacts_map_from_server = getContactsMapFromJson(json);
+            Map<String, List<String>> contacts_map =
+                    MyApp.contacts_manager_.getAllContactsMap();
+            Map<String, Integer> contacts_map_from_server =
+                    getContactsMapFromJson(json);
             if (contacts_map_from_server == null) return false;
 
             String id, content;
@@ -167,7 +168,7 @@ public class SyncService extends Service{
                 }
                 else {
                     if (contacts_map_from_server.containsKey(id)) {
-                        if (Integer.valueOf(contacts_map_from_server.get(id).get(1)) > last_op_time) {
+                        if (contacts_map_from_server.get(id) > last_op_time) {
                             pullFromServer(id);
                         }
                         contacts_map_from_server.remove(id);
@@ -177,7 +178,7 @@ public class SyncService extends Service{
                     }
                 }
             }
-            for (Map.Entry<String, List<String>> entry : contacts_map_from_server.entrySet()) {
+            for (Map.Entry<String, Integer> entry : contacts_map_from_server.entrySet()) {
                 id = entry.getKey();
                 pullFromServer(id);
             }
@@ -191,10 +192,11 @@ public class SyncService extends Service{
                 if (json == null) {
                     return false;
                 }
+                String encrypted_content = MyApp.key_manager_.encryptByPublicKey(content);
                 json.put("action", "push");
                 json.put("id", id);
                 json.put("last_op_time", last_op_time);
-                json.put("content", content);
+                json.put("content", encrypted_content);
                 json.put("delete", delete);
                 JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
                 if(resp_json == null) {
@@ -226,8 +228,11 @@ public class SyncService extends Service{
                 int status_code = resp_json.getInt("status_code");
                 Log.i("http", "code " + status_code);
                 if (status_code == HttpURLConnection.HTTP_OK) {
+                    String decrypted_content = MyApp.key_manager_.decryptByPrivateKey(
+                            resp_json.getString("content")
+                    );
                     MyApp.contacts_manager_.updateContactWithTimeCheck(
-                            Contact.loadContactFromJsonString(json.getString("content")),
+                            Contact.loadContactFromJsonString(decrypted_content),
                             json.getInt("last_op_time")
                     );
                     return true;
@@ -240,34 +245,27 @@ public class SyncService extends Service{
             }
         }
 
-        private Map<String, List<String>> getContactsMapFromJson(JSONObject json) {
-        try {
-            JSONObject json_contacts_map = json.getJSONObject("contacts_map");
-            Iterator<String> iter = json_contacts_map.keys();
+        private Map<String, Integer> getContactsMapFromJson(JSONObject json) {
+            try {
+                JSONObject json_contacts_map = json.getJSONObject("contacts_map");
+                Iterator<String> iter = json_contacts_map.keys();
 
-            Map<String, List<String>> contacts_map_from_server = new TreeMap<>();
-            String temp_key;
-            JSONArray temp_json_arr;
-            List<String> temp_arr = new ArrayList<>();
-            while (iter.hasNext()) {
-                temp_key = iter.toString();
-                temp_json_arr = json_contacts_map.getJSONArray(temp_key);
-                temp_arr.clear();
-                temp_arr.add(temp_json_arr.getString(0));
-                temp_arr.add(temp_json_arr.getString(1));
-                contacts_map_from_server.put(
-                        temp_key,
-                        new ArrayList<>(temp_arr)
-                );
-                iter.next();
+                Map<String, Integer> contacts_map_from_server = new TreeMap<>();
+                String temp_key;
+                while (iter.hasNext()) {
+                    temp_key = iter.next();
+                    contacts_map_from_server.put(
+                            temp_key,
+                            json_contacts_map.getInt(temp_key)
+                    );
+                }
+                return contacts_map_from_server;
             }
-            return contacts_map_from_server;
+            catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
         @Override
         protected void onPostExecute(final Integer res) {
