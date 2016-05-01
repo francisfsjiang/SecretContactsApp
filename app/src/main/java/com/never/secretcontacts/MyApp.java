@@ -62,8 +62,8 @@ public class MyApp extends Application{
     }
 
     public static void clearLoginStatus() {
-        auth_id_ = "";
-        auth_key_ = "";
+        updateLoginStatus("", "");
+        key_manager_.clearKeys();
     }
     public static void updateLoginStatus(String auth_id, String auth_key) {
         auth_id_ = auth_id;

@@ -43,6 +43,10 @@ public class SecretKeyManager {
         return !pri_key_.equals("") && !pub_key_.equals("");
     }
 
+    public void clearKeys() {
+        saveKeyPair("", "");
+    }
+
     public void saveKeyPair(String pri_key, String pub_key) {
         pri_key_ = pri_key;
         pub_key_ = pub_key;

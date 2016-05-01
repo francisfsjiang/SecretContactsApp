@@ -74,7 +74,6 @@ public class SyncService extends Service{
         }
         g_sync_task_.execute((Void) null);
 
-
         g_sync_task_ = null;
     }
 
@@ -166,7 +165,12 @@ public class SyncService extends Service{
                         contacts_map_from_server.remove(id);
                     }
                     else {
-                        if (pushToServer(id, last_op_time, content, false)) success_counter++;
+                        if (last_op == ContactsManager.OP.NEW.getValue()){
+                            if (pushToServer(id, last_op_time, content, false)) success_counter++;
+                        }
+                        else if (last_op == ContactsManager.OP.SYNCED.getValue()){
+                            MyApp.contacts_manager_.deleteContact(id);
+                        }
                     }
                 }
             }
@@ -201,7 +205,7 @@ public class SyncService extends Service{
                         MyApp.contacts_manager_.deleteContact(id);
                     }
                     else {
-                        MyApp.contacts_manager_.clearContactOP(id);
+                        MyApp.contacts_manager_.setContactOP(id, ContactsManager.OP.SYNCED, false);
                     }
                     return true;
                 }

@@ -44,6 +44,7 @@
         android:id="@+id/contact_edit_bottons_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="10dp"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         >
@@ -94,7 +95,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
         <LinearLayout
             android:id="@+id/item_list_phone"
@@ -164,6 +165,27 @@
                 android:text="备忘"/>
 
         </LinearLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <Button
+                    android:id="@+id/contact_delete_button"
+                    style="?android:textAppearanceSmall"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="60dp"
+                    android:layout_marginBottom="40dp"
+                    android:layout_centerInParent="true"
+                    android:layout_marginStart="@dimen/contact_edit_buttons_margin_horizontal"
+                    android:layout_marginEnd="@dimen/contact_edit_buttons_margin_horizontal"
+                    android:text="@string/action_contact_delete"
+                    android:textStyle="bold"
+                    android:textColor="@color/red"
+                    android:theme="@style/ContactActionButton"
+                    />
+
+            </RelativeLayout>
         </LinearLayout>
 
     </ScrollView>

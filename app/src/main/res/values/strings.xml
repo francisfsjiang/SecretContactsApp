@@ -28,6 +28,7 @@
 
     <string name="action_contact_new_item">添加</string>
     <string name="action_contact_cancel">取消</string>
+    <string name="action_contact_delete">删除</string>
     <string name="action_contact_save">保存</string>
 
     <string name="prompt_email">邮箱</string>

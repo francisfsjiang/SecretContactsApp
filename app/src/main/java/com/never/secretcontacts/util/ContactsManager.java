@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ContactsManager {
 
     public enum OP {
-        None(0), NEW(1), UPDATE(2), DELETE(3);
+        None(0), NEW(1), UPDATE(2), DELETE(3), SYNCED(4);
         int value;
         OP(int value) {
             this.value = value;
@@ -53,9 +53,12 @@ public class ContactsManager {
 
         List<Contact> mSortList = new ArrayList<Contact>();
 
-        Cursor cursor = db_.query(TABLE_NAME, new String[]{"content"}, null, null, null, null, null);
+        Cursor cursor = db_.query(TABLE_NAME, new String[]{"content", "last_op"}, null, null, null, null, null);
         if (cursor.moveToFirst()) {
             do {
+                if (cursor.getInt(cursor.getColumnIndex("last_op")) == OP.DELETE.getValue()) {
+                    continue;
+                }
                 Contact sortModel = Contact.loadContactFromJsonString(
                         cursor.getString(cursor.getColumnIndex("content"))
                 );
@@ -140,17 +143,16 @@ public class ContactsManager {
     public void updateContactFromServer(Contact contact, Integer op_time) {
         ContentValues value = new ContentValues();
         value.put("content", Contact.dumpContactToJsonString(contact));
-        value.put("last_op", OP.None.getValue());
+        value.put("last_op", OP.SYNCED.getValue());
         value.put("last_op_time", op_time);
         db_.update(TABLE_NAME, value, "id = ? & last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
     }
 
     public void createContactFromServer(Contact contact, Integer op_time) {
-        contact.setId(UUID.randomUUID().toString());
         ContentValues value = new ContentValues();
         value.put("id", contact.getId());
         value.put("content", Contact.dumpContactToJsonString(contact));
-        value.put("last_op", OP.None.getValue());
+        value.put("last_op", OP.SYNCED.getValue());
         value.put("last_op_time", op_time);
         db_.insert(TABLE_NAME, null, value);
     }
@@ -162,6 +164,14 @@ public class ContactsManager {
     public void clearContactOP(String id) {
         ContentValues value = new ContentValues();
         value.put("last_op", OP.None.getValue());
+        db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
+    }
+
+    public void setContactOP(String id, OP op, Boolean change_op_time_to_now) {
+        ContentValues value = new ContentValues();
+        value.put("last_op", op.getValue());
+        if (change_op_time_to_now)
+            value.put("last_op_time", System.currentTimeMillis() / 1000);
         db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
     }
 

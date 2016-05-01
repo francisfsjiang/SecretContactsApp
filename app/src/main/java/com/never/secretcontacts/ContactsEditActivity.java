@@ -17,6 +17,7 @@ import android.widget.TextView;
 
 import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactItem;
+import com.never.secretcontacts.util.ContactsManager;
 
 public class ContactsEditActivity extends AppCompatActivity {
 
@@ -24,6 +25,8 @@ public class ContactsEditActivity extends AppCompatActivity {
 
     private Button new_item_button_;
     private Button save_button_;
+    private Button delete_button_;
+    private Button cancel_button_;
     private Button change_name_button_;
 
     private TextView contact_name_view_;
@@ -109,6 +112,31 @@ public class ContactsEditActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 saveContact();
+                finish();
+            }
+        });
+
+        delete_button_ = (Button) findViewById(R.id.contact_delete_button);
+        delete_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (contact_.getId().equals("")) {
+                    finish();
+                }
+                else {
+                    MyApp.contacts_manager_.setContactOP(
+                            contact_.getId(),
+                            ContactsManager.OP.DELETE,
+                            true
+                    );
+                }
+            }
+        });
+
+        cancel_button_ = (Button) findViewById(R.id.contact_cancel_button);
+        cancel_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 finish();
             }
         });

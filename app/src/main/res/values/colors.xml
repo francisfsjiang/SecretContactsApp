@@ -9,5 +9,6 @@
     <color name="contact_edit_separate_bar_background">#efefef</color>
 
     <color name="black">#000000</color>
+    <color name="red">#fa8383</color>
 </resources>
 
