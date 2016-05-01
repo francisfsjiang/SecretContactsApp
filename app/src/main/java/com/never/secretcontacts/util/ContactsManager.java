@@ -137,26 +137,32 @@ public class ContactsManager {
         db_.update(TABLE_NAME, value, "id = ?", new String[]{contact.getId()});
     }
 
-    public void updateContactWithTimeCheck(Contact contact, Integer op_time) {
+    public void updateContactFromServer(Contact contact, Integer op_time) {
         ContentValues value = new ContentValues();
         value.put("content", Contact.dumpContactToJsonString(contact));
         value.put("last_op", OP.None.getValue());
-        value.put("last_op_time", 0);
-        db_.update(TABLE_NAME, value, "id = ? && last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
+        value.put("last_op_time", op_time);
+        db_.update(TABLE_NAME, value, "id = ? & last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
     }
 
-    public void deleteContact(Contact contact) {
+    public void createContactFromServer(Contact contact, Integer op_time) {
+        contact.setId(UUID.randomUUID().toString());
         ContentValues value = new ContentValues();
-        value.put("last_op", OP.DELETE.getValue());
-        value.put("last_op_time", System.currentTimeMillis()/1000);
-        db_.delete(TABLE_NAME, "id = ?", new String[]{contact.getId()});
+        value.put("id", contact.getId());
+        value.put("content", Contact.dumpContactToJsonString(contact));
+        value.put("last_op", OP.None.getValue());
+        value.put("last_op_time", op_time);
+        db_.insert(TABLE_NAME, null, value);
     }
 
-    public void clearContactOP(Contact contact) {
+    public void deleteContact(String id) {
+        db_.delete(TABLE_NAME, "id = ?", new String[]{id});
+    }
+
+    public void clearContactOP(String id) {
         ContentValues value = new ContentValues();
         value.put("last_op", OP.None.getValue());
-        value.put("last_op_time", 0);
-        db_.update(TABLE_NAME, value, "id = ?", new String[]{contact.getId()});
+        db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
     }
 
     private class DBHelper extends SQLiteOpenHelper {

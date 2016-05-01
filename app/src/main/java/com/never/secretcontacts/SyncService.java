@@ -3,36 +3,24 @@ package com.never.secretcontacts;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.SystemClock;
-import android.support.annotation.IntegerRes;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.never.secretcontacts.util.AlarmReceiver;
 import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactsManager;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class SyncService extends Service{
 
@@ -129,8 +117,7 @@ public class SyncService extends Service{
                 int status_code = resp_json.getInt("status_code");
                 Log.i("http", "code " + status_code);
                 if(status_code == HttpURLConnection.HTTP_OK) {
-                    processPollingList(resp_json);
-                    return 1;
+                    return processPollingList(resp_json);
                 }
                 else if (status_code == HttpURLConnection.HTTP_FORBIDDEN) {
                     return -3;
@@ -146,13 +133,13 @@ public class SyncService extends Service{
             return -2;
         }
 
-        private Boolean processPollingList(JSONObject json) {
+        private Integer processPollingList(JSONObject json) {
             Map<String, List<String>> contacts_map =
                     MyApp.contacts_manager_.getAllContactsMap();
             Map<String, Integer> contacts_map_from_server =
                     getContactsMapFromJson(json);
-            if (contacts_map_from_server == null) return false;
-
+            if (contacts_map_from_server == null) return -1;
+            Integer success_counter = 0;
             String id, content;
             Integer last_op, last_op_time;
             for (Map.Entry<String, List<String>> entry : contacts_map.entrySet()) {
@@ -161,7 +148,7 @@ public class SyncService extends Service{
                 last_op_time = Integer.valueOf(entry.getValue().get(1));
                 last_op = Integer.valueOf(entry.getValue().get(2));
                 if(last_op == ContactsManager.OP.DELETE.getValue()) {
-                    pushToServer(id, last_op_time, content, true);
+                    if (pushToServer(id, last_op_time, content, true)) success_counter++;
                     if (contacts_map_from_server.containsKey(id)) {
                         contacts_map_from_server.remove(id);
                     }
@@ -169,20 +156,20 @@ public class SyncService extends Service{
                 else {
                     if (contacts_map_from_server.containsKey(id)) {
                         if (contacts_map_from_server.get(id) > last_op_time) {
-                            pullFromServer(id);
+                            if (pullFromServer(id, true))success_counter++;
                         }
                         contacts_map_from_server.remove(id);
                     }
                     else {
-                        pushToServer(id, last_op_time, content, false);
+                        if (pushToServer(id, last_op_time, content, false)) success_counter++;
                     }
                 }
             }
             for (Map.Entry<String, Integer> entry : contacts_map_from_server.entrySet()) {
                 id = entry.getKey();
-                pullFromServer(id);
+                if (pullFromServer(id, false)) success_counter++;
             }
-            return false;
+            return success_counter;
         }
 
         private Boolean pushToServer(String id, Integer last_op_time, String content, Boolean delete) {
@@ -204,7 +191,18 @@ public class SyncService extends Service{
                 }
                 int status_code = resp_json.getInt("status_code");
                 Log.i("http", "code " + status_code);
-                return status_code == HttpURLConnection.HTTP_OK;
+                if (status_code == HttpURLConnection.HTTP_OK) {
+                    if (delete) {
+                        MyApp.contacts_manager_.deleteContact(id);
+                    }
+                    else {
+                        MyApp.contacts_manager_.clearContactOP(id);
+                    }
+                    return true;
+                }
+                else {
+                    return false;
+                }
             }
             catch (Exception e) {
                 Log.e("network", "Network failed." + e.getMessage());
@@ -212,7 +210,7 @@ public class SyncService extends Service{
             }
         }
 
-        private Boolean pullFromServer(String id) {
+        private Boolean pullFromServer(String id, Boolean update) {
             try {
                 Log.i("service", "pull from server, id " + id);
                 JSONObject json = MyApp.getAuthJson();
@@ -231,10 +229,18 @@ public class SyncService extends Service{
                     String decrypted_content = MyApp.key_manager_.decryptByPrivateKey(
                             resp_json.getString("content")
                     );
-                    MyApp.contacts_manager_.updateContactWithTimeCheck(
-                            Contact.loadContactFromJsonString(decrypted_content),
-                            json.getInt("last_op_time")
-                    );
+                    if (update) {
+                        MyApp.contacts_manager_.updateContactFromServer(
+                                Contact.loadContactFromJsonString(decrypted_content),
+                                resp_json.getInt("last_op_time")
+                        );
+                    }
+                    else {
+                        MyApp.contacts_manager_.createContactFromServer(
+                                Contact.loadContactFromJsonString(decrypted_content),
+                                resp_json.getInt("last_op_time")
+                        );
+                    }
                     return true;
                 }
                 return false;
@@ -272,8 +278,9 @@ public class SyncService extends Service{
             g_sync_task_ = null;
 
             Log.i("service", "task finish, res " + res.toString());
-            if (res == 1) {
-
+            if (res > 0) {
+                Intent i = new Intent("UPDATE_UI");
+                sendBroadcast(i);
             }
             else if (res == -1){
                 Log.i("service", "unknown error. ");

@@ -5,9 +5,12 @@ import java.util.Collections;
 import java.util.List;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -68,6 +71,16 @@ public class MainActivity extends AppCompatActivity {
             Log.i("service", "service disconnected");
         }
     };
+
+    private BroadcastReceiver receiver_ = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("main", "receive from service");
+            onResume();
+        }
+    };
+
+    private IntentFilter receiver_filter_ = new IntentFilter();
 
 
     @Override
@@ -141,6 +154,9 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        });
 
+        receiver_filter_.addAction("UPDATE_UI");
+        registerReceiver(receiver_, receiver_filter_);
+
         Intent bind_intent = new Intent(this, SyncService.class);
         bindService(bind_intent, service_connection_, BIND_AUTO_CREATE);
 
@@ -148,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
         startService(service_intent);
 
     }
+
 
     @Override
     protected void onResume() {
@@ -292,6 +309,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         unbindService(service_connection_);
+        if (receiver_ != null) {
+            unregisterReceiver(receiver_);
+            receiver_ = null;
+        }
         super.onDestroy();
     }
 
