@@ -145,7 +145,7 @@ public class ContactsManager {
         value.put("content", Contact.dumpContactToJsonString(contact));
         value.put("last_op", OP.SYNCED.getValue());
         value.put("last_op_time", op_time);
-        db_.update(TABLE_NAME, value, "id = ? & last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
+        db_.update(TABLE_NAME, value, "id = ? and last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
     }
 
     public void createContactFromServer(Contact contact, Integer op_time) {
