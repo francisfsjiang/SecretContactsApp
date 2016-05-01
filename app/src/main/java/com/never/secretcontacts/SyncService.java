@@ -106,6 +106,11 @@ public class SyncService extends Service{
         @Override
         protected Integer doInBackground(Void... params) {
             try {
+
+                if (!MyApp.checkKeyStatus() || !MyApp.checkKeyStatus()) {
+                    return -3;
+                }
+
                 JSONObject json = MyApp.getAuthJson();
                 if (json == null) {
                     return -1;
