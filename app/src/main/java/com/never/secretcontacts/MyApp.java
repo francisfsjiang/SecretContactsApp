@@ -7,6 +7,7 @@ import android.util.Log;
 import com.never.secretcontacts.util.ContactsManager;
 import com.never.secretcontacts.util.SecretKeyManager;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
@@ -98,8 +99,13 @@ public class MyApp extends Application{
             if(response.code() == HttpURLConnection.HTTP_OK) {
                 JSONTokener json_tokener = new JSONTokener(response.body().string());
                 response.body().close();
-                return ((JSONObject)json_tokener.nextValue()).
-                        put("status_code", response.code());
+                try {
+                    return ((JSONObject)json_tokener.nextValue()).
+                            put("status_code", response.code());
+                }
+                catch (JSONException e) {
+                    return new JSONObject().put("status_code", response.code());
+                }
             }
             else {
                 response.body().close();

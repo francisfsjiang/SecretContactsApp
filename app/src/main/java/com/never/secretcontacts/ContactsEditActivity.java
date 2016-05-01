@@ -129,6 +129,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                             ContactsManager.OP.DELETE,
                             true
                     );
+                    finish();
                 }
             }
         });

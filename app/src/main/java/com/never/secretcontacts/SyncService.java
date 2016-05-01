@@ -174,6 +174,7 @@ public class SyncService extends Service{
                         }
                         else if (last_op == ContactsManager.OP.SYNCED.getValue()){
                             MyApp.contacts_manager_.deleteContact(id);
+                            success_counter ++;
                         }
                     }
                 }
@@ -192,11 +193,13 @@ public class SyncService extends Service{
                 if (json == null) {
                     return false;
                 }
-                String encrypted_content = MyApp.key_manager_.encryptByPublicKey(content);
                 json.put("action", "push");
                 json.put("id", id);
                 json.put("last_op_time", last_op_time);
-                if (!delete)json.put("content", encrypted_content);
+                if (!delete){
+                    String encrypted_content = MyApp.key_manager_.encryptByPublicKey(content);
+                    json.put("content", encrypted_content);
+                }
                 json.put("delete", delete);
                 JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
                 if(resp_json == null) {
