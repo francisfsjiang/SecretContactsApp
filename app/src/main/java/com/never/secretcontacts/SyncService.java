@@ -162,6 +162,9 @@ public class SyncService extends Service{
                         if (contacts_map_from_server.get(id) > last_op_time) {
                             if (pullFromServer(id, true))success_counter++;
                         }
+                        else if (contacts_map_from_server.get(id) < last_op_time) {
+                            if (pushToServer(id, last_op_time, content, false)) success_counter++;
+                        }
                         contacts_map_from_server.remove(id);
                     }
                     else {
@@ -192,7 +195,7 @@ public class SyncService extends Service{
                 json.put("action", "push");
                 json.put("id", id);
                 json.put("last_op_time", last_op_time);
-                json.put("content", encrypted_content);
+                if (!delete)json.put("content", encrypted_content);
                 json.put("delete", delete);
                 JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
                 if(resp_json == null) {
