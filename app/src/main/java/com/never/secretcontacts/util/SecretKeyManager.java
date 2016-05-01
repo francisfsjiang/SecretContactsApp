@@ -21,8 +21,8 @@ public class SecretKeyManager {
     private String pri_key_;
     private String pub_key_;
 
-    private final int MAX_ENCRYPT_BLOCK = 512;
-    private final int MAX_DECRYPT_BLOCK = 512;
+    private final int MAX_ENCRYPT_BLOCK = 256;
+    private final int MAX_DECRYPT_BLOCK = 256;
 
     private SecretKeyManager(SharedPreferences shared_preferences) {
         shared_preferences_ = shared_preferences;

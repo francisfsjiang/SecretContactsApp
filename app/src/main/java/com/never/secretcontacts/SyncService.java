@@ -168,7 +168,8 @@ public class SyncService extends Service{
                         contacts_map_from_server.remove(id);
                     }
                     else {
-                        if (last_op == ContactsManager.OP.NEW.getValue()){
+                        if (last_op == ContactsManager.OP.NEW.getValue() ||
+                                last_op == ContactsManager.OP.UPDATE.getValue()){
                             if (pushToServer(id, last_op_time, content, false)) success_counter++;
                         }
                         else if (last_op == ContactsManager.OP.SYNCED.getValue()){
@@ -217,6 +218,7 @@ public class SyncService extends Service{
                 }
             }
             catch (Exception e) {
+                e.printStackTrace();
                 Log.e("network", "Network failed." + e.getMessage());
                 return false;
             }
