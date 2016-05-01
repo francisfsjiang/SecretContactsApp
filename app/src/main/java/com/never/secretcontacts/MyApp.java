@@ -30,6 +30,7 @@ public class MyApp extends Application{
     public static String URL_REGISTER = URL_SITE + "api/register";
     public static String URL_POLLING = URL_SITE + "api/polling";
     public static String URL_KEY = URL_SITE + "api/key";
+    public static String URL_CONTACTS = URL_SITE + "api/contacts";
 
     private static String auth_id_;
     private static String auth_key_;
@@ -107,7 +108,6 @@ public class MyApp extends Application{
         }
         catch (Exception e) {
             Log.e("http", "http post json failed. " + e.getMessage());
-            e.printStackTrace();
             return null;
         }
     }

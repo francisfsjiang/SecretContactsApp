@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        invalidateOptionsMenu();
 
         if(MyApp.checkLoginStatus()) {
             sort_list_view_.setVisibility(View.VISIBLE);
@@ -166,8 +167,6 @@ public class MainActivity extends AppCompatActivity {
             login_recommend_text_view_.setVisibility(View.VISIBLE);
         }
 
-        invalidateOptionsMenu();
-
         source_data_list_ = MyApp.contacts_manager_.getAllContacts();
 
         // 根据a-z进行排序源数据
@@ -176,20 +175,29 @@ public class MainActivity extends AppCompatActivity {
         sort_list_view_.setAdapter(sort_adapter_);
     }
 
+    private static final boolean[] menu_item_visible_unlogged        = {true, true, false, false, false, false, false, false};
+    private static final boolean[] menu_item_visible_logged_no_key   = {false, false, true, true, true, true, true, true};
+    private static final boolean[] menu_item_visible_logged_with_key = {false, false, true, true, true, false, true, true};
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-
-
-        boolean[] visible_arr = {true, true, false, false, false, false, false, false};
         if(MyApp.checkLoginStatus()) {
-            visible_arr[0] = visible_arr[1] = false;
-            visible_arr[2] = visible_arr[3] = visible_arr[4] = true;
-            visible_arr[5] = visible_arr[6] = visible_arr[7] = true;
+            if (MyApp.checkKeyStatus()) {
+                for (int i = 0; i < menu.size(); i++)
+                    menu.getItem(i).setVisible(menu_item_visible_logged_with_key[i]);
+            }
+            else {
+                for (int i = 0; i < menu.size(); i++)
+                    menu.getItem(i).setVisible(menu_item_visible_logged_no_key[i]);
+            }
         }
-        for (int i = 0; i < menu.size(); i++)
-            menu.getItem(i).setVisible(visible_arr[i]);
+        else {
+            for (int i = 0; i < menu.size(); i++)
+                menu.getItem(i).setVisible(menu_item_visible_unlogged[i]);
+        }
         return true;
     }
 

@@ -9,11 +9,13 @@ import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 public class ContactsManager {
 
-    private enum OP {
+    public enum OP {
         None(0), NEW(1), UPDATE(2), DELETE(3);
         int value;
         OP(int value) {
@@ -65,17 +67,39 @@ public class ContactsManager {
                 String sortString = pinyin.substring(0, 1).toUpperCase();
 
                 // 正则表达式，判断首字母是否是英文字母
-                if(sortString.matches("[A-Z]")){
+                if (sortString.matches("[A-Z]")) {
                     sortModel.setSortLetters(sortString.toUpperCase());
-                }else{
+                } else {
                     sortModel.setSortLetters("#");
                 }
 
                 mSortList.add(sortModel);
-            }while (cursor.moveToNext());
+            } while (cursor.moveToNext());
         }
         cursor.close();
         return mSortList;
+    }
+
+    public Map<String, List<String>> getAllContactsMap() {
+        Map<String, List<String>> contacts_map = new TreeMap<>();
+        Cursor cursor = db_.query(TABLE_NAME, null, null, null, null, null, null);
+        String temp_id;
+        List<String> temp_arr = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                temp_id = cursor.getString(cursor.getColumnIndex("id"));
+                temp_arr.clear();
+                temp_arr.add(cursor.getString(cursor.getColumnIndex("content")));
+                temp_arr.add(cursor.getString(cursor.getColumnIndex("last_op_time")));
+                temp_arr.add(cursor.getString(cursor.getColumnIndex("last_op")));
+                contacts_map.put(
+                        temp_id,
+                        new ArrayList<>(temp_arr)
+                );
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return contacts_map;
     }
 
     public Contact getContact(String contact_id) {
@@ -111,6 +135,14 @@ public class ContactsManager {
         value.put("last_op", OP.UPDATE.getValue());
         value.put("last_op_time", System.currentTimeMillis() / 1000);
         db_.update(TABLE_NAME, value, "id = ?", new String[]{contact.getId()});
+    }
+
+    public void updateContactWithTimeCheck(Contact contact, Integer op_time) {
+        ContentValues value = new ContentValues();
+        value.put("content", Contact.dumpContactToJsonString(contact));
+        value.put("last_op", OP.None.getValue());
+        value.put("last_op_time", 0);
+        db_.update(TABLE_NAME, value, "id = ? && last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
     }
 
     public void deleteContact(Contact contact) {

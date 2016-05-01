@@ -9,15 +9,28 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.SystemClock;
+import android.support.annotation.IntegerRes;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.never.secretcontacts.util.AlarmReceiver;
 import com.never.secretcontacts.util.Contact;
+import com.never.secretcontacts.util.ContactsManager;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -55,7 +68,7 @@ public class SyncService extends Service{
     private void startSyncAlarmer() {
         Log.i("service", "starting alarmer.");
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        int next_time = 1000 * 10;
+        int next_time = 1000 * 20;
         long trigger_time = SystemClock.elapsedRealtime() + next_time;
         Intent i = new Intent(this, AlarmReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
@@ -102,14 +115,6 @@ public class SyncService extends Service{
 
     public class SyncTask extends AsyncTask<Void, Void, Integer> {
 
-//        private final String mEmail;
-//        private final String mPassword;
-//
-//        SyncTask(String email, String password) {
-//            mEmail = email;
-//            mPassword = password;
-//        }
-
         @Override
         protected Integer doInBackground(Void... params) {
             try {
@@ -142,12 +147,127 @@ public class SyncService extends Service{
         }
 
         private Boolean processPollingList(JSONObject json) {
+            Map<String, List<String>> contacts_map, contacts_map_from_server;
+            contacts_map = MyApp.contacts_manager_.getAllContactsMap();
+            contacts_map_from_server = getContactsMapFromJson(json);
+            if (contacts_map_from_server == null) return false;
 
-
-
-
+            String id, content;
+            Integer last_op, last_op_time;
+            for (Map.Entry<String, List<String>> entry : contacts_map.entrySet()) {
+                id = entry.getKey();
+                content = entry.getValue().get(0);
+                last_op_time = Integer.valueOf(entry.getValue().get(1));
+                last_op = Integer.valueOf(entry.getValue().get(2));
+                if(last_op == ContactsManager.OP.DELETE.getValue()) {
+                    pushToServer(id, last_op_time, content, true);
+                    if (contacts_map_from_server.containsKey(id)) {
+                        contacts_map_from_server.remove(id);
+                    }
+                }
+                else {
+                    if (contacts_map_from_server.containsKey(id)) {
+                        if (Integer.valueOf(contacts_map_from_server.get(id).get(1)) > last_op_time) {
+                            pullFromServer(id);
+                        }
+                        contacts_map_from_server.remove(id);
+                    }
+                    else {
+                        pushToServer(id, last_op_time, content, false);
+                    }
+                }
+            }
+            for (Map.Entry<String, List<String>> entry : contacts_map_from_server.entrySet()) {
+                id = entry.getKey();
+                pullFromServer(id);
+            }
             return false;
         }
+
+        private Boolean pushToServer(String id, Integer last_op_time, String content, Boolean delete) {
+            try {
+                Log.i("service", "push to server, id " + id + " , " + content);
+                JSONObject json = MyApp.getAuthJson();
+                if (json == null) {
+                    return false;
+                }
+                json.put("action", "push");
+                json.put("id", id);
+                json.put("last_op_time", last_op_time);
+                json.put("content", content);
+                json.put("delete", delete);
+                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
+                if(resp_json == null) {
+                    return false;
+                }
+                int status_code = resp_json.getInt("status_code");
+                Log.i("http", "code " + status_code);
+                return status_code == HttpURLConnection.HTTP_OK;
+            }
+            catch (Exception e) {
+                Log.e("network", "Network failed." + e.getMessage());
+                return false;
+            }
+        }
+
+        private Boolean pullFromServer(String id) {
+            try {
+                Log.i("service", "pull from server, id " + id);
+                JSONObject json = MyApp.getAuthJson();
+                if (json == null) {
+                    return false;
+                }
+                json.put("action", "pull");
+                json.put("id", id);
+                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
+                if(resp_json == null) {
+                    return false;
+                }
+                int status_code = resp_json.getInt("status_code");
+                Log.i("http", "code " + status_code);
+                if (status_code == HttpURLConnection.HTTP_OK) {
+                    MyApp.contacts_manager_.updateContactWithTimeCheck(
+                            Contact.loadContactFromJsonString(json.getString("content")),
+                            json.getInt("last_op_time")
+                    );
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e) {
+                Log.e("network", "Network failed." + e.getMessage());
+                return false;
+            }
+        }
+
+        private Map<String, List<String>> getContactsMapFromJson(JSONObject json) {
+        try {
+            JSONObject json_contacts_map = json.getJSONObject("contacts_map");
+            Iterator<String> iter = json_contacts_map.keys();
+
+            Map<String, List<String>> contacts_map_from_server = new TreeMap<>();
+            String temp_key;
+            JSONArray temp_json_arr;
+            List<String> temp_arr = new ArrayList<>();
+            while (iter.hasNext()) {
+                temp_key = iter.toString();
+                temp_json_arr = json_contacts_map.getJSONArray(temp_key);
+                temp_arr.clear();
+                temp_arr.add(temp_json_arr.getString(0));
+                temp_arr.add(temp_json_arr.getString(1));
+                contacts_map_from_server.put(
+                        temp_key,
+                        new ArrayList<>(temp_arr)
+                );
+                iter.next();
+            }
+            return contacts_map_from_server;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
         @Override
         protected void onPostExecute(final Integer res) {
