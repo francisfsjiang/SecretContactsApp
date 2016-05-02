@@ -1,6 +1,6 @@
 package com.never.secretcontacts.util;
 
-import org.apache.commons.codec.binary.Base64;
+import android.util.Base64;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -18,14 +18,14 @@ import javax.crypto.KeyGenerator;
 
 public class CipherAESandRSA {
     public static RSAPrivateKey getPrivateKeyFromString(String key) throws Exception {
-        byte[] encoded = Base64.decodeBase64(key);
+        byte[] encoded = Base64.decode(key, Base64.DEFAULT);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
         return (RSAPrivateKey) kf.generatePrivate(keySpec);
     }
 
     public static RSAPublicKey getPublicKeyFromString(String key) throws Exception {
-        byte[] encoded = Base64.decodeBase64(key);
+        byte[] encoded = Base64.decode(key, Base64.DEFAULT);
         KeyFactory kf = KeyFactory.getInstance("RSA");
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
         return (RSAPublicKey) kf.generatePublic(keySpec);
