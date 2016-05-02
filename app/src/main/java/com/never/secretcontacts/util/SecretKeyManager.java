@@ -1,18 +1,11 @@
 package com.never.secretcontacts.util;
 
 import android.content.SharedPreferences;
-import android.util.Base64;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import org.apache.commons.codec.binary.Base64;
 
-import javax.crypto.Cipher;
+import java.nio.charset.Charset;
+import java.security.Key;
 
 public class SecretKeyManager {
 
@@ -56,78 +49,38 @@ public class SecretKeyManager {
         editor.apply();
     }
 
-
-    private RSAPrivateKey getPrivateKeyFromString(String key) throws IOException, GeneralSecurityException {
-        byte[] encoded = Base64.decode(key, Base64.DEFAULT);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(encoded);
-        return (RSAPrivateKey) kf.generatePrivate(keySpec);
-    }
-
-    private RSAPublicKey getPublicKeyFromString(String key) throws IOException, GeneralSecurityException {
-        byte[] encoded = Base64.decode(key, Base64.DEFAULT);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
-        return (RSAPublicKey) kf.generatePublic(keySpec);
-    }
-
-
-    public String encryptByPublicKey(String text)
-            throws Exception {
-        RSAPublicKey publicKey = getPublicKeyFromString(pub_key_);
-        byte[] data = text.getBytes();
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        // 对数据加密
-        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        int inputLen = data.length;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int offSet = 0;
-        byte[] cache;
-        int i = 0;
-        // 对数据分段加密
-        while (inputLen - offSet > 0) {
-            if (inputLen - offSet > MAX_ENCRYPT_BLOCK) {
-                cache = cipher.doFinal(data, offSet, MAX_ENCRYPT_BLOCK);
-            } else {
-                cache = cipher.doFinal(data, offSet, inputLen - offSet);
-            }
-            out.write(cache, 0, cache.length);
-            i++;
-            offSet = i * MAX_ENCRYPT_BLOCK;
+    public class EncryptResult {
+        public String aes_key;
+        public String content;
+        EncryptResult(String aes_key, String content) {
+            this.aes_key = aes_key;
+            this.content = content;
         }
-        byte[] encryptedData = out.toByteArray();
-        out.close();
-        return Base64.encodeToString(encryptedData, Base64.DEFAULT);
     }
 
+    public EncryptResult encrypt (String content) throws Exception{
+        Key aes_key = CipherAESandRSA.generateAESKey();
+        byte[] cipher_text_byte = CipherAESandRSA.aesEncrypt(content.getBytes(Charset.forName("UTF-8")), aes_key);
+        String cipher_text_str = Base64.encodeBase64String(cipher_text_byte);
+        byte[] encrypted_aes_key_byte = CipherAESandRSA.wrapAESKey(
+                aes_key,
+                CipherAESandRSA.getPublicKeyFromString(pub_key_)
+        );
+        String encrypted_ase_key_str = Base64.encodeBase64String(encrypted_aes_key_byte);
 
-    public String decryptByPrivateKey(String data)
-            throws Exception {
-        byte[] encryptedData = Base64.decode(data, Base64.DEFAULT);
-        RSAPrivateKey privateKey = getPrivateKeyFromString(pri_key_);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        int inputLen = encryptedData.length;
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int offSet = 0;
-        byte[] cache;
-        int i = 0;
-        // 对数据分段解密
-        while (inputLen - offSet > 0) {
-            if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
-                cache = cipher.doFinal(encryptedData, offSet, MAX_DECRYPT_BLOCK);
-            } else {
-                cache = cipher.doFinal(encryptedData, offSet, inputLen - offSet);
-            }
-            out.write(cache, 0, cache.length);
-            i++;
-            offSet = i * MAX_DECRYPT_BLOCK;
-        }
-        byte[] decryptedData = out.toByteArray();
-        out.close();
-        return new String(decryptedData);
+        return new EncryptResult(encrypted_ase_key_str, cipher_text_str);
+    }
+
+    public String decrypt(String encrypted_aes_key_str, String encrypted_content) throws Exception{
+        Key o_aes_key = CipherAESandRSA.unwrapAESKey(
+                Base64.decodeBase64(encrypted_aes_key_str),
+                CipherAESandRSA.getPrivateKeyFromString(pri_key_)
+        );
+        byte[] raw_text_byte = CipherAESandRSA.aesDecrypt(
+                Base64.decodeBase64(encrypted_content),
+                o_aes_key
+        );
+        return new String(raw_text_byte, Charset.forName("UTF-8"));
     }
 
 }

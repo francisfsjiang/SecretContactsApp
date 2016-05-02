@@ -39,4 +39,7 @@ dependencies {
     compile 'com.android.support:design:23.1.1'
     compile files('libs/okhttp-3.2.0.jar')
     compile files('libs/okio-1.7.0.jar')
+    compile files('libs/org.apache.commons.codec-1.8.jar')
+    compile files('libs/commons-codec-1.8.jar')
+    compile files('libs/annotations-1.0.0.jar')
 }

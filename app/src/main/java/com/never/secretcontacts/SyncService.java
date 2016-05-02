@@ -12,6 +12,7 @@ import android.util.Log;
 import com.never.secretcontacts.util.AlarmReceiver;
 import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactsManager;
+import com.never.secretcontacts.util.SecretKeyManager;
 
 import org.json.JSONObject;
 
@@ -197,8 +198,9 @@ public class SyncService extends Service{
                 json.put("id", id);
                 json.put("last_op_time", last_op_time);
                 if (!delete){
-                    String encrypted_content = MyApp.key_manager_.encryptByPublicKey(content);
-                    json.put("content", encrypted_content);
+                    SecretKeyManager.EncryptResult res = MyApp.key_manager_.encrypt(content);
+                    json.put("content", res.content);
+                    json.put("content_key", res.aes_key);
                 }
                 json.put("delete", delete);
                 JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_CONTACTS, json);
@@ -243,7 +245,8 @@ public class SyncService extends Service{
                 int status_code = resp_json.getInt("status_code");
                 Log.i("http", "code " + status_code);
                 if (status_code == HttpURLConnection.HTTP_OK) {
-                    String decrypted_content = MyApp.key_manager_.decryptByPrivateKey(
+                    String decrypted_content = MyApp.key_manager_.decrypt(
+                            resp_json.getString("content_key"),
                             resp_json.getString("content")
                     );
                     if (update) {
