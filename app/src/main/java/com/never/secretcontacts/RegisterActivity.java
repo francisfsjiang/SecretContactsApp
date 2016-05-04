@@ -176,8 +176,6 @@ public class RegisterActivity extends AppCompatActivity {
 
         @Override
         protected Integer doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
-
             try {
                 JSONObject json = new JSONObject();
                 json.put("email", mEmail);

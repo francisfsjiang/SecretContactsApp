@@ -156,6 +156,8 @@ public class MainActivity extends AppCompatActivity {
         receiver_filter_.addAction("UPDATE_UI");
         registerReceiver(receiver_, receiver_filter_);
 
+
+
         Intent bind_intent = new Intent(this, SyncService.class);
         bindService(bind_intent, service_connection_, BIND_AUTO_CREATE);
 

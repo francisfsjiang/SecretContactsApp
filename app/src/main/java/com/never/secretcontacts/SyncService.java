@@ -14,7 +14,9 @@ import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactsManager;
 import com.never.secretcontacts.util.SecretKeyManager;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 import java.net.HttpURLConnection;
 import java.util.Date;
@@ -139,6 +141,7 @@ public class SyncService extends Service{
         }
 
         private Integer processPollingList(JSONObject json) {
+            //Sync contacts
             Map<String, List<String>> contacts_map =
                     MyApp.contacts_manager_.getAllContactsMap();
             Map<String, Integer> contacts_map_from_server =
@@ -184,7 +187,81 @@ public class SyncService extends Service{
                 id = entry.getKey();
                 if (pullFromServer(id, false)) success_counter++;
             }
+
+            //TODO Sync harassing phones
+            try {
+                Integer local_harassing_update_time =
+                        MyApp.harassing_call_manager_.getCloudHarassingUpdateTime();
+                if (local_harassing_update_time < json.getInt("harassing_update_time")){
+                    updateCloudHarassing();
+                }
+            }
+            catch (Exception e) {
+                Log.i("service", "update cloud harassing failed.");
+            }
+
+            //push my harassing sign
+            pushMyHarassing();
+
             return success_counter;
+        }
+
+        private Boolean pushMyHarassing() {
+            try {
+                Log.i("service", "pushing my harassing to server");
+                JSONObject json = MyApp.getAuthJson();
+                if (json == null) {
+                    return false;
+                }
+                JSONArray json_arr = new JSONArray();
+                List<String> phone_list = MyApp.harassing_call_manager_.getMyHarassing();
+                for (String s:phone_list) {
+                    json_arr.put(s);
+                }
+                json.put("phone_list", json_arr);
+                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_UPLOAD_HARASSING, json);
+                if(resp_json == null) {
+                    return false;
+                }
+                int status_code = resp_json.getInt("status_code");
+                Log.i("http", "code " + status_code);
+                if (status_code == HttpURLConnection.HTTP_OK) {
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e) {
+                Log.e("network", "Network failed." + e.getMessage());
+                return false;
+            }
+        }
+
+        private Boolean updateCloudHarassing() {
+            try {
+                Log.i("service", "update cloud harassing from server");
+                JSONObject json = MyApp.getAuthJson();
+                if (json == null) {
+                    return false;
+                }
+                JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_HARASSING, json);
+                if(resp_json == null) {
+                    return false;
+                }
+                int status_code = resp_json.getInt("status_code");
+                Log.i("http", "code " + status_code);
+                if (status_code == HttpURLConnection.HTTP_OK) {
+                    Integer update_time = resp_json.getInt("update_time");
+                    String content_str = resp_json.getString("content");
+                    JSONArray content_json = (JSONArray)new JSONTokener(content_str).nextValue();
+                    MyApp.harassing_call_manager_.updateCloudHarassing(content_json, update_time);
+                    return true;
+                }
+                return false;
+            }
+            catch (Exception e) {
+                Log.e("network", "Network failed." + e.getMessage());
+                return false;
+            }
         }
 
         private Boolean pushToServer(String id, Integer last_op_time, String content, Boolean delete) {

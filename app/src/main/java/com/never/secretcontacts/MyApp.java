@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.never.secretcontacts.util.ContactsManager;
+import com.never.secretcontacts.util.HarassingCallManager;
 import com.never.secretcontacts.util.SecretKeyManager;
 
 import org.json.JSONException;
@@ -32,6 +33,8 @@ public class MyApp extends Application{
     public static String URL_POLLING = URL_SITE + "api/polling";
     public static String URL_KEY = URL_SITE + "api/key";
     public static String URL_CONTACTS = URL_SITE + "api/contacts";
+    public static String URL_HARASSING = URL_SITE + "api/harassing";
+    public static String URL_UPLOAD_HARASSING = URL_SITE + "api/upload_harassing";
 
     private static String auth_id_;
     private static String auth_key_;
@@ -42,6 +45,10 @@ public class MyApp extends Application{
 
     public static SecretKeyManager key_manager_;
 
+    public static HarassingCallManager harassing_call_manager_;
+
+
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -51,6 +58,7 @@ public class MyApp extends Application{
 
         key_manager_ = SecretKeyManager.getSecretKeyManager(shared_preference_);
         contacts_manager_ = ContactsManager.getContactsManager(getApplicationContext());
+        harassing_call_manager_ = HarassingCallManager.getCloudBlackListManager(getApplicationContext());
 
     }
 
