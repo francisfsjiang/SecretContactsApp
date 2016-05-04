@@ -17,16 +17,16 @@ public class PhoneReceiver extends BroadcastReceiver {
     private Method end_call_;
     private Method silence_call_;
     private Object iTelephony;
+    private TelephonyManager tm_;
     //    private String incomingNumber;
     @Override
     public void onReceive(Context context, Intent intent) {
-        TelephonyManager tm = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
-
+        tm_ = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
         try {
 
-            Method m1 = tm.getClass().getDeclaredMethod("getITelephony");
+            Method m1 = tm_.getClass().getDeclaredMethod("getITelephony");
             m1.setAccessible(true);
-            iTelephony = m1.invoke(tm);
+            iTelephony = m1.invoke(tm_);
 
             silence_call_ = iTelephony.getClass().getDeclaredMethod("silenceRinger");
             end_call_ = iTelephony.getClass().getDeclaredMethod("endCall");
@@ -41,7 +41,7 @@ public class PhoneReceiver extends BroadcastReceiver {
             final String phoneNum = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             Log.i("PhoneReceiver", "phoneNum: " + phoneNum);
         } else {
-            tm.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+            tm_.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
         }
     }
     final PhoneStateListener listener=new PhoneStateListener(){
@@ -57,7 +57,8 @@ public class PhoneReceiver extends BroadcastReceiver {
                     if (incomingNumber.equals("15801310352")) {
                         try {
 //                            end_call_.invoke(iTelephony);
-                            silence_call_.invoke(iTelephony);
+//                            silence_call_.invoke(iTelephony);
+                            tm_.getClass().getMethod("endCall").invoke(tm_);
                             Log.i("PhoneReceiver", "CALL IN HANG UP :" + incomingNumber);
                         }
                         catch (Exception e) {
