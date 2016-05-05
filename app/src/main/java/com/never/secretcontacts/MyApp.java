@@ -189,13 +189,9 @@ public class MyApp extends Application{
         }
 
         public void stopInfoWindow() {
-            try {
-                if (window_alert_view_!=null) {
-                    window_manager_.removeView(window_alert_view_);
-                }
-            }
-            catch (Exception e) {
-
+            if (window_alert_view_!=null) {
+                window_manager_.removeView(window_alert_view_);
+                window_alert_view_ = null;
             }
         }
     };
