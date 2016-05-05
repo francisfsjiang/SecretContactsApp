@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -76,8 +78,10 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver receiver_ = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.i("main", "receive from service");
-            onResume();
+            Log.i("main", "receive from service, action: " + intent.getAction());
+            if (intent.getAction().equals("UPDATE_UI")) {
+                onResume();
+            }
         }
     };
 

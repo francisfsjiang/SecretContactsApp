@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
+import android.support.annotation.BoolRes;
 import android.support.v7.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
@@ -64,17 +65,17 @@ public class MyApp extends Application{
 
     public static HarassingCallManager harassing_call_manager_;
 
+    private static Integer notify_id_ = 0;
+
 
     private static boolean incomingFlag = false;
     private BroadcastReceiver phone_receiver_ = new BroadcastReceiver() {
         private TelephonyManager tm_;
-        private WindowManager window_manager_;
-        private TextView window_alert_view_;
+        private Boolean broadcast_sent_ = false;
         @Override
         public void onReceive(Context context, Intent intent) {
             tm_ = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
 //        context_ = MyApp.getAppContext();
-            window_manager_ = (WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
             //拨打电话
             if (intent.getAction().equals(Intent.ACTION_NEW_OUTGOING_CALL)) {
                 incomingFlag = false;
@@ -89,6 +90,7 @@ public class MyApp extends Application{
             @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 super.onCallStateChanged(state, incomingNumber);
+                Integer har = 0;
                 Contact contact;
                 switch(state){
                     //电话等待接听
@@ -98,29 +100,31 @@ public class MyApp extends Application{
                         Boolean block = false;
                         contact = MyApp.contacts_manager_.getContactByPhone(incomingNumber);
                         if (contact == null) {
-                            Integer har = MyApp.harassing_call_manager_.isHarassingPhone(
+                            har = MyApp.harassing_call_manager_.isHarassingPhone(
                                     incomingNumber
                             );
                             if (har > 0) {
                                 block = true;
                             }
-                            if (!block)startInfoWindow("未知号码 " + incomingNumber);
+                            if (!block)startInfoWindow("未知号码: " + incomingNumber);
                         }
                         else {
                             block = contact.isBlock();
-                            if (!block)startInfoWindow(contact.getName());
+                            if (!block)startInfoWindow("电话来自: " + contact.getName());
                         }
                         if (block) {
                             try {
                                 tm_.getClass().getMethod("endCall").invoke(tm_);
                                 Log.i("PhoneReceiver", "CALL IN HANG UP :" + incomingNumber);
                                 if (contact == null) {
-                                    startNotification(incomingNumber);
-                                    startToast(incomingNumber);
+                                    String msg = "骚扰电话: " + incomingNumber +", 已被标记" + har + "次";
+                                    startNotification(msg);
+                                    startToast(msg);
                                 }
                                 else {
-                                    startNotification(contact.getName());
-                                    startToast(contact.getName());
+                                    String msg = "来自黑名单: " + contact.getName();
+                                    startNotification(msg);
+                                    startToast(msg);
                                 }
                             }
                             catch (Exception e) {
@@ -136,12 +140,15 @@ public class MyApp extends Application{
                         }
                         else {
                             Log.i("PhoneReceiver", "CALL OUT START :" + incomingNumber);
-                            contact = MyApp.contacts_manager_.getContactByPhone(incomingNumber);
-                            if (contact == null) {
-                                startInfoWindow(incomingNumber);
-                            }
-                            else {
-                                startInfoWindow(contact.getName());
+                            if (incomingNumber != null && !incomingNumber.equals("")){
+                                contact = MyApp.contacts_manager_.getContactByPhone(incomingNumber);
+                                if (contact == null ) {
+                                    startInfoWindow("正在拨打电话: " + incomingNumber);
+                                }
+                                else {
+                                    startInfoWindow("正在联系: " + contact.getName());
+                                }
+
                             }
                         }
                         break;
@@ -159,41 +166,38 @@ public class MyApp extends Application{
             }
         };
 
+        public void startInfoWindow(String msg) {
+            if (!broadcast_sent_) {
+                Intent i = new Intent("START_INFO_WINDOW");
+                i.putExtra("msg", msg);
+                sendBroadcast(i);
+            }
+            broadcast_sent_ = true;
+        }
+
+        public void stopInfoWindow() {
+            if (broadcast_sent_) {
+                Intent i = new Intent("STOP_INFO_WINDOW");
+                sendBroadcast(i);
+            }
+            broadcast_sent_ = false;
+        }
+
         public void startToast(String msg) {
-            Toast.makeText(getApplicationContext(),"来电已被拦截,来自:" + msg, Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"来电已被拦截," + msg, Toast.LENGTH_LONG).show();
         }
 
         public void startNotification(String msg) {
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext());
             mBuilder.setSmallIcon(R.mipmap.ic_launcher_white);
             mBuilder.setContentTitle("来电已被拦截");
-            mBuilder.setContentText("来自 " + msg);
+            mBuilder.setContentText(msg);
             NotificationManager mNotificationManager =
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            mNotificationManager.notify(1, mBuilder.build());
+            mNotificationManager.notify(notify_id_, mBuilder.build());
+            notify_id_++;
         }
 
-        public void startInfoWindow(String msg) {
-//            if (window_alert_view_ != null) {
-//                return;
-//            }
-            WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-            params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
-            params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-            params.width = WindowManager.LayoutParams.WRAP_CONTENT;
-            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
-            params.format = PixelFormat.RGBA_8888;
-            window_alert_view_ = new TextView(getApplicationContext());
-            window_alert_view_.setText("秘连提示，电话来自: " + msg);
-            window_manager_.addView(window_alert_view_, params);
-        }
-
-        public void stopInfoWindow() {
-            if (window_alert_view_!=null) {
-                window_manager_.removeView(window_alert_view_);
-                window_alert_view_ = null;
-            }
-        }
     };
 
     @Override

@@ -3,11 +3,17 @@ package com.never.secretcontacts;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.PixelFormat;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.never.secretcontacts.util.AlarmReceiver;
 import com.never.secretcontacts.util.Contact;
@@ -51,6 +57,12 @@ public class SyncService extends Service{
     public int onStartCommand(Intent intent, int flags, int start_id) {
         Log.i("service", "service on start command");
         Log.i("service", "executed at " + new Date().toString());
+        if (!receiver_registed_) {
+            IntentFilter ift = new IntentFilter();
+            ift.addAction("START_INFO_WINDOW");
+            ift.addAction("STOP_INFO_WINDOW");
+            registerReceiver(receiver_, ift);
+        }
         syncProcess();
         startSyncAlarmer();
         return super.onStartCommand(intent, flags, start_id);
@@ -398,6 +410,50 @@ public class SyncService extends Service{
                 g_sync_task_ = new SyncTask();
             }
         }
+    }
+
+
+    private Boolean receiver_registed_ = false;
+    private BroadcastReceiver receiver_ = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.i("service", "receive action: " + intent.getAction());
+
+            if(intent.getAction().equals("START_INFO_WINDOW")) {
+                startInfoWindow(intent.getStringExtra("msg"));
+            }
+            else if(intent.getAction().equals("STOP_INFO_WINDOW")) {
+                stopInfoWindow();
+            }
+
+        }
+    };
+
+    private WindowManager window_manager_;
+    private TextView window_alert_view_;
+
+    public void startInfoWindow(String msg) {
+        if (window_alert_view_ != null) {
+            return;
+        }
+        window_manager_ = (WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+        params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        params.format = PixelFormat.RGBA_8888;
+        window_alert_view_ = new TextView(getApplicationContext());
+        window_alert_view_.setText("秘连提示," + msg);
+        window_manager_.addView(window_alert_view_, params);
+    }
+
+    public void stopInfoWindow() {
+        Log.i("PhoneReceiver", "stop window");
+        window_manager_.removeView(window_alert_view_);
+        ((WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE)).removeView(window_alert_view_);
+        window_alert_view_ = null;
+        window_manager_ = null;
     }
 
 }
