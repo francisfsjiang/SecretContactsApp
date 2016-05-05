@@ -28,6 +28,7 @@ public class ContactsEditActivity extends AppCompatActivity {
     private Button delete_button_;
     private Button cancel_button_;
     private Button change_name_button_;
+    private Button block_button_;
 
     private TextView contact_name_view_;
 
@@ -134,6 +135,21 @@ public class ContactsEditActivity extends AppCompatActivity {
             }
         });
 
+        block_button_ = (Button) findViewById(R.id.contact_block_button);
+        block_button_.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (contact_.isBlock()) {
+                    contact_.setBlock(false);
+                    block_button_.setText("加入黑名单");
+                }
+                else {
+                    contact_.setBlock(true);
+                    block_button_.setText("解除黑名单");
+                }
+            }
+        });
+
         cancel_button_ = (Button) findViewById(R.id.contact_cancel_button);
         cancel_button_.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,10 +167,17 @@ public class ContactsEditActivity extends AppCompatActivity {
             addNewItemView(ContactItem.ItemType.EMAIL);
             addNewItemView(ContactItem.ItemType.ADDRESS);
             addNewItemView(ContactItem.ItemType.MEMO);
+            block_button_.setText("加入黑名单");
         }
         else {
             contact_ = MyApp.contacts_manager_.getContact(contact_.getId());
             contact_name_view_.setText(contact_.getName());
+            if (contact_.isBlock()) {
+                block_button_.setText("解除黑名单");
+            }
+            else {
+                block_button_.setText("加入黑名单");
+            }
             for (ContactItem item: contact_.item_list_) {
                 addNewItemView(item);
             }
@@ -257,6 +280,7 @@ public class ContactsEditActivity extends AppCompatActivity {
 
     private void saveContact() {
         Contact contact = new Contact(contact_.getName(), contact_.getId());
+        contact.setBlock(contact_.isBlock());
         saveItems(contact, item_list_phone_  , ContactItem.ItemType.PHONE.getValue());
         saveItems(contact, item_list_email_  , ContactItem.ItemType.EMAIL.getValue());
         saveItems(contact, item_list_address_, ContactItem.ItemType.ADDRESS.getValue());

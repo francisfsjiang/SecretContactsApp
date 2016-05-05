@@ -19,23 +19,10 @@ import java.util.UUID;
 
 public class HarassingCallManager {
 
-    public enum OP {
-        None(0), NEW(1), UPDATE(2), DELETE(3), SYNCED(4);
-        int value;
-        OP(int value) {
-            this.value = value;
-        }
-        public int getValue() {
-            return value;
-        }
-    }
-    private CharacterParser character_parser_;
-
     private DBHelper db_helper_;
 
     private SQLiteDatabase db_;
 
-    private Context context_;
     SharedPreferences shared_preferences_;
 
     private String CLOUD_TABLE_NAME = "cloud_harassing";
@@ -43,11 +30,9 @@ public class HarassingCallManager {
 
     private HarassingCallManager(Context context) {
         shared_preferences_ = context.getSharedPreferences("harassing", Context.MODE_PRIVATE);
-        context_ = context;
         db_helper_ = new DBHelper(context, "SecretContactsBlock.db", 1);
         db_ = db_helper_.getWritableDatabase();
 
-        character_parser_ = CharacterParser.getInstance();
     }
 
     private static HarassingCallManager cloud_blacklist_manager_ = null;
@@ -59,6 +44,17 @@ public class HarassingCallManager {
         return cloud_blacklist_manager_;
     }
 
+    public Integer isHarassingPhone(String phone_number) {
+        Cursor cursor = db_.query(CLOUD_TABLE_NAME, new String[]{"mark_time"}, "phone = ?", new String[]{phone_number},null, null, null);
+        if (cursor.moveToFirst()) {
+            Integer ret = cursor.getInt(cursor.getColumnIndex("mark_time"));
+            cursor.close();
+            return ret;
+        }
+        else {
+            return -1;
+        }
+    }
 
     public void setCloudHarassingUpdateTime(Integer time_stamp) {
         SharedPreferences.Editor editor = shared_preferences_.edit();

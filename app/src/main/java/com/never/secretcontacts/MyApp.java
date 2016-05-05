@@ -15,10 +15,12 @@ import android.support.v7.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.util.StringBuilderPrinter;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.never.secretcontacts.util.Contact;
 import com.never.secretcontacts.util.ContactsManager;
 import com.never.secretcontacts.util.HarassingCallManager;
 import com.never.secretcontacts.util.SecretKeyManager;
@@ -87,22 +89,45 @@ public class MyApp extends Application{
             @Override
             public void onCallStateChanged(int state, String incomingNumber) {
                 super.onCallStateChanged(state, incomingNumber);
+                Contact contact;
                 switch(state){
                     //电话等待接听
                     case TelephonyManager.CALL_STATE_RINGING:
                         incomingFlag = true;
                         Log.i("PhoneReceiver", "CALL IN RINGING :" + incomingNumber);
-                        startInfoWindow(incomingNumber);
-//                        if (incomingNumber.equals("15801310352")) {
-//                            try {
-//                                tm_.getClass().getMethod("endCall").invoke(tm_);
-//                                Log.i("PhoneReceiver", "CALL IN HANG UP :" + incomingNumber);
-//                            }
-//                            catch (Exception e) {
-//                                e.printStackTrace();
-//                                Log.i("PhoneReceiver", "endcall failed");
-//                            }
-//                        }
+                        Boolean block = false;
+                        contact = MyApp.contacts_manager_.getContactByPhone(incomingNumber);
+                        if (contact == null) {
+                            Integer har = MyApp.harassing_call_manager_.isHarassingPhone(
+                                    incomingNumber
+                            );
+                            if (har > 0) {
+                                block = true;
+                            }
+                            if (!block)startInfoWindow("未知号码 " + incomingNumber);
+                        }
+                        else {
+                            block = contact.isBlock();
+                            if (!block)startInfoWindow(contact.getName());
+                        }
+                        if (block) {
+                            try {
+                                tm_.getClass().getMethod("endCall").invoke(tm_);
+                                Log.i("PhoneReceiver", "CALL IN HANG UP :" + incomingNumber);
+                                if (contact == null) {
+                                    startNotification(incomingNumber);
+                                    startToast(incomingNumber);
+                                }
+                                else {
+                                    startNotification(contact.getName());
+                                    startToast(contact.getName());
+                                }
+                            }
+                            catch (Exception e) {
+                                e.printStackTrace();
+                                Log.i("PhoneReceiver", "endcall failed");
+                            }
+                        }
                         break;
                     //电话接听
                     case TelephonyManager.CALL_STATE_OFFHOOK:
@@ -110,7 +135,14 @@ public class MyApp extends Application{
                             Log.i("PhoneReceiver", "CALL IN ACCEPT :" + incomingNumber);
                         }
                         else {
-                            Log.i("PhoneReceiver", "CALL OUT ACCEPT :" + incomingNumber);
+                            Log.i("PhoneReceiver", "CALL OUT START :" + incomingNumber);
+                            contact = MyApp.contacts_manager_.getContactByPhone(incomingNumber);
+                            if (contact == null) {
+                                startInfoWindow(incomingNumber);
+                            }
+                            else {
+                                startInfoWindow(contact.getName());
+                            }
                         }
                         break;
                     //电话挂机
@@ -126,18 +158,25 @@ public class MyApp extends Application{
                 }
             }
         };
-        public void startInfoWindow(String phone) {
-            Toast.makeText(getApplicationContext(),"来电已被拦截,来自" + phone, Toast.LENGTH_LONG).show();
 
+        public void startToast(String msg) {
+            Toast.makeText(getApplicationContext(),"来电已被拦截,来自:" + msg, Toast.LENGTH_LONG).show();
+        }
+
+        public void startNotification(String msg) {
             NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext());
             mBuilder.setSmallIcon(R.mipmap.ic_launcher_white);
             mBuilder.setContentTitle("来电已被拦截");
-            mBuilder.setContentText("来自 " + phone);
+            mBuilder.setContentText("来自 " + msg);
             NotificationManager mNotificationManager =
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.notify(1, mBuilder.build());
+        }
 
-
+        public void startInfoWindow(String msg) {
+//            if (window_alert_view_ != null) {
+//                return;
+//            }
             WindowManager.LayoutParams params = new WindowManager.LayoutParams();
             params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
             params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -145,13 +184,18 @@ public class MyApp extends Application{
             params.height = WindowManager.LayoutParams.WRAP_CONTENT;
             params.format = PixelFormat.RGBA_8888;
             window_alert_view_ = new TextView(getApplicationContext());
-            window_alert_view_.setText("这是悬浮窗口，来电号码：" + phone);
+            window_alert_view_.setText("秘连提示，电话来自: " + msg);
             window_manager_.addView(window_alert_view_, params);
         }
 
         public void stopInfoWindow() {
-            if (window_alert_view_!=null) {
-                window_manager_.removeView(window_alert_view_);
+            try {
+                if (window_alert_view_!=null) {
+                    window_manager_.removeView(window_alert_view_);
+                }
+            }
+            catch (Exception e) {
+
             }
         }
     };

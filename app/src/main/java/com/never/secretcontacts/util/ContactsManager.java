@@ -120,6 +120,30 @@ public class ContactsManager {
         }
     }
 
+    public Contact getContactByPhone(String phone) {
+        Cursor cursor;
+        cursor = db_.query(TABLE_NAME_MAP, new String[]{"id"}, "phone = ?", new String[]{phone},null, null, null);
+        String contact_id;
+        if (cursor.moveToFirst()) {
+            contact_id = cursor.getString(cursor.getColumnIndex("id"));
+            cursor.close();
+        }
+        else {
+            return null;
+        }
+        cursor = db_.query(TABLE_NAME, new String[]{"content"}, "id = ?", new String[]{contact_id},null, null, null);
+        if (cursor.moveToFirst()) {
+            Contact contact = Contact.loadContactFromJsonString(
+                    cursor.getString(cursor.getColumnIndex("content"))
+            );
+            cursor.close();
+            return contact;
+        }
+        else {
+            return null;
+        }
+    }
+
     public void createContact(Contact contact) {
         contact.setId(UUID.randomUUID().toString());
         ContentValues value = new ContentValues();
@@ -131,6 +155,7 @@ public class ContactsManager {
         Log.i("contact", "new contact created.");
         Log.i("contact", "name: " + contact.getName());
         Log.i("contact", "id: " + contact.getId());
+        updateContactMap(contact);
     }
 
     public void updateContact(Contact contact) {
@@ -139,6 +164,7 @@ public class ContactsManager {
         value.put("last_op", OP.UPDATE.getValue());
         value.put("last_op_time", System.currentTimeMillis() / 1000);
         db_.update(TABLE_NAME, value, "id = ?", new String[]{contact.getId()});
+        updateContactMap(contact);
     }
 
     public void updateContactFromServer(Contact contact, Integer op_time) {
@@ -147,6 +173,7 @@ public class ContactsManager {
         value.put("last_op", OP.SYNCED.getValue());
         value.put("last_op_time", op_time);
         db_.update(TABLE_NAME, value, "id = ? and last_op_time <= ?", new String[]{contact.getId(), op_time.toString()});
+        updateContactMap(contact);
     }
 
     public void createContactFromServer(Contact contact, Integer op_time) {
@@ -156,10 +183,12 @@ public class ContactsManager {
         value.put("last_op", OP.SYNCED.getValue());
         value.put("last_op_time", op_time);
         db_.insert(TABLE_NAME, null, value);
+        updateContactMap(contact);
     }
 
     public void deleteContact(String id) {
         db_.delete(TABLE_NAME, "id = ?", new String[]{id});
+        db_.delete(TABLE_NAME_MAP, "id = ?", new String[]{id});
     }
 
     public void setContactOP(String id, OP op, Boolean change_op_time_to_now) {
@@ -168,10 +197,21 @@ public class ContactsManager {
         if (change_op_time_to_now)
             value.put("last_op_time", System.currentTimeMillis() / 1000);
         db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
+        if (op == OP.DELETE) {
+            db_.delete(TABLE_NAME_MAP, "id = ?", new String[]{id});
+        }
     }
 
-    public void updateContactMap(Contact contact, Boolean delete) {
-
+    public void updateContactMap(Contact contact) {
+        db_.delete(TABLE_NAME_MAP, "id = ?", new String[]{contact.getId()});
+        for (ContactItem item :contact.item_list_) {
+            if (item.type == ContactItem.ItemType.PHONE.getValue() && !item.content.equals("")){
+                ContentValues values = new ContentValues();
+                values.put("phone", item.content);
+                values.put("id", contact.getId());
+                db_.insert(TABLE_NAME_MAP, null, values);
+            }
+        }
     }
 
     private class DBHelper extends SQLiteOpenHelper {
@@ -185,7 +225,7 @@ public class ContactsManager {
 
         private static final String CREATE_CONTACTS_MAP_TABLE =
                 "create table secret_contacts_map (" +
-                        "phone text primary key," +
+                        "phone text," +
                         "id text)";
 
         private Context context_;

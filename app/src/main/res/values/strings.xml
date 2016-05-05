@@ -38,7 +38,7 @@
     <string name="prompt_password">密码</string>
 
     <string name="login_recommend">您还没有登录，请点击右上角菜单登录</string>
-    <string name="key_recommend">您还没有生成密钥，请点击右上角菜单登录</string>
+    <string name="key_recommend">您还没有生成密钥，请点击右上角菜单设置密钥</string>
     <string name="recovery_key_hint">请用纸笔记下上面的密码并妥善保管，此密码用来在其他设备上同步通讯录，以及当您的设备丢失时用来找回您的数据。如果您丢失了该密码，将会无法恢复您的通讯录</string>
 
     <string name="error_invalid_email">邮箱格式错误</string>

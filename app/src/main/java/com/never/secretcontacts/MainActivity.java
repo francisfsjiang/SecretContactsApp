@@ -178,6 +178,13 @@ public class MainActivity extends AppCompatActivity {
             side_bar_.setVisibility(View.VISIBLE);
             search_view_.setVisibility(View.VISIBLE);
             login_recommend_text_view_.setVisibility(View.GONE);
+            if (!MyApp.checkKeyStatus()){
+                sort_list_view_.setVisibility(View.GONE);
+                side_bar_.setVisibility(View.GONE);
+                search_view_.setVisibility(View.GONE);
+                login_recommend_text_view_.setVisibility(View.VISIBLE);
+                login_recommend_text_view_.setText(getResources().getString(R.string.key_recommend));
+            }
         }
         else {
             sort_list_view_.setVisibility(View.GONE);
