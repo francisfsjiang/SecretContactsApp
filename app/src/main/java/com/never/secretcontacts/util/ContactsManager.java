@@ -32,6 +32,7 @@ public class ContactsManager {
     private SQLiteDatabase db_;
 
     private String TABLE_NAME = "secret_contacts";
+    private String TABLE_NAME_MAP = "secret_contacts_map";
 
     private ContactsManager(Context context) {
         db_helper_ = new DBHelper(context, "SecretContacts.db", 1);
@@ -161,18 +162,16 @@ public class ContactsManager {
         db_.delete(TABLE_NAME, "id = ?", new String[]{id});
     }
 
-    public void clearContactOP(String id) {
-        ContentValues value = new ContentValues();
-        value.put("last_op", OP.None.getValue());
-        db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
-    }
-
     public void setContactOP(String id, OP op, Boolean change_op_time_to_now) {
         ContentValues value = new ContentValues();
         value.put("last_op", op.getValue());
         if (change_op_time_to_now)
             value.put("last_op_time", System.currentTimeMillis() / 1000);
         db_.update(TABLE_NAME, value, "id = ?", new String[]{id});
+    }
+
+    public void updateContactMap(Contact contact, Boolean delete) {
+
     }
 
     private class DBHelper extends SQLiteOpenHelper {
@@ -183,6 +182,11 @@ public class ContactsManager {
                         "content text," +
                         "last_op integer," +
                         "last_op_time integer)";
+
+        private static final String CREATE_CONTACTS_MAP_TABLE =
+                "create table secret_contacts_map (" +
+                        "phone text primary key," +
+                        "id text)";
 
         private Context context_;
 
@@ -196,6 +200,7 @@ public class ContactsManager {
         @Override
         public void onCreate(SQLiteDatabase db) {
             db.execSQL(CREATE_CONTACTS_TABLE);
+            db.execSQL(CREATE_CONTACTS_MAP_TABLE);
             Log.i("db", "table created");
         }
 

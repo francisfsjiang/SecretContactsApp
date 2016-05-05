@@ -1,8 +1,23 @@
 package com.never.secretcontacts;
 
 import android.app.Application;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
+import android.app.TaskStackBuilder;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
+import android.support.v7.app.NotificationCompat;
+import android.telephony.PhoneStateListener;
+import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.never.secretcontacts.util.ContactsManager;
 import com.never.secretcontacts.util.HarassingCallManager;
@@ -48,6 +63,98 @@ public class MyApp extends Application{
     public static HarassingCallManager harassing_call_manager_;
 
 
+    private static boolean incomingFlag = false;
+    private BroadcastReceiver phone_receiver_ = new BroadcastReceiver() {
+        private TelephonyManager tm_;
+        private WindowManager window_manager_;
+        private TextView window_alert_view_;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            tm_ = (TelephonyManager) context.getSystemService(Service.TELEPHONY_SERVICE);
+//        context_ = MyApp.getAppContext();
+            window_manager_ = (WindowManager)getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+            //拨打电话
+            if (intent.getAction().equals(Intent.ACTION_NEW_OUTGOING_CALL)) {
+                incomingFlag = false;
+                final String phoneNum = intent.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
+                Log.i("PhoneReceiver", "phoneNum: " + phoneNum);
+            } else {
+                tm_.listen(listener, PhoneStateListener.LISTEN_CALL_STATE);
+            }
+        }
+
+        final PhoneStateListener listener=new PhoneStateListener(){
+            @Override
+            public void onCallStateChanged(int state, String incomingNumber) {
+                super.onCallStateChanged(state, incomingNumber);
+                switch(state){
+                    //电话等待接听
+                    case TelephonyManager.CALL_STATE_RINGING:
+                        incomingFlag = true;
+                        Log.i("PhoneReceiver", "CALL IN RINGING :" + incomingNumber);
+                        startInfoWindow(incomingNumber);
+//                        if (incomingNumber.equals("15801310352")) {
+//                            try {
+//                                tm_.getClass().getMethod("endCall").invoke(tm_);
+//                                Log.i("PhoneReceiver", "CALL IN HANG UP :" + incomingNumber);
+//                            }
+//                            catch (Exception e) {
+//                                e.printStackTrace();
+//                                Log.i("PhoneReceiver", "endcall failed");
+//                            }
+//                        }
+                        break;
+                    //电话接听
+                    case TelephonyManager.CALL_STATE_OFFHOOK:
+                        if (incomingFlag) {
+                            Log.i("PhoneReceiver", "CALL IN ACCEPT :" + incomingNumber);
+                        }
+                        else {
+                            Log.i("PhoneReceiver", "CALL OUT ACCEPT :" + incomingNumber);
+                        }
+                        break;
+                    //电话挂机
+                    case TelephonyManager.CALL_STATE_IDLE:
+                        stopInfoWindow();
+                        if (incomingFlag) {
+                            Log.i("PhoneReceiver", "CALL IN IDLE");
+                        }
+                        else {
+                            Log.i("PhoneReceiver", "CALL OUT IDLE");
+                        }
+                        break;
+                }
+            }
+        };
+        public void startInfoWindow(String phone) {
+            Toast.makeText(getApplicationContext(),"来电已被拦截,来自" + phone, Toast.LENGTH_LONG).show();
+
+            NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getApplicationContext());
+            mBuilder.setSmallIcon(R.mipmap.ic_launcher_white);
+            mBuilder.setContentTitle("来电已被拦截");
+            mBuilder.setContentText("来自 " + phone);
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager.notify(1, mBuilder.build());
+
+
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams();
+            params.type = WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY;
+            params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+            params.width = WindowManager.LayoutParams.WRAP_CONTENT;
+            params.height = WindowManager.LayoutParams.WRAP_CONTENT;
+            params.format = PixelFormat.RGBA_8888;
+            window_alert_view_ = new TextView(getApplicationContext());
+            window_alert_view_.setText("这是悬浮窗口，来电号码：" + phone);
+            window_manager_.addView(window_alert_view_, params);
+        }
+
+        public void stopInfoWindow() {
+            if (window_alert_view_!=null) {
+                window_manager_.removeView(window_alert_view_);
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -60,6 +167,11 @@ public class MyApp extends Application{
         contacts_manager_ = ContactsManager.getContactsManager(getApplicationContext());
         harassing_call_manager_ = HarassingCallManager.getCloudBlackListManager(getApplicationContext());
 
+
+        IntentFilter receiver_filter_ = new IntentFilter();
+        receiver_filter_.addAction("android.intent.action.PHONE_STATE");
+        receiver_filter_.addAction("android.intent.action.NEW_OUTGOING_CALL");
+        registerReceiver(phone_receiver_, receiver_filter_);
     }
 
     public static Boolean checkLoginStatus() {

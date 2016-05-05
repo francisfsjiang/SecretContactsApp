@@ -41,14 +41,6 @@
             android:label="@string/activity_key_title"></activity>
         <service android:name=".SyncService"></service>
         <receiver android:name=".util.AlarmReceiver"></receiver>
-        <receiver android:name=".util.PhoneReceiver" >
-            <intent-filter>
-                <!-- 获取来电广播 -->
-                <action android:name="android.intent.action.PHONE_STATE" />
-                <!-- 获取去电广播 -->
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>
