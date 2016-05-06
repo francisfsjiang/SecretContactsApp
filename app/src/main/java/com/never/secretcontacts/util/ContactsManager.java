@@ -214,6 +214,11 @@ public class ContactsManager {
         }
     }
 
+    public void deleteAllData() {
+        db_.delete(TABLE_NAME, null, null);
+        db_.delete(TABLE_NAME_MAP, null, null);
+    }
+
     private class DBHelper extends SQLiteOpenHelper {
 
         private static final String CREATE_CONTACTS_TABLE =

@@ -58,6 +58,7 @@ public class PinPasswordSetActivity extends AppCompatActivity {
             if (isPinPasswordValid(pin_new)) {
                 if (pin_new.equals(pin_new_again)) {
                     MyApp.setPinPassword(pin_new);
+                    MyApp.setPinPasswordWrongTime(0);
                     finish();
                 }
                 else {

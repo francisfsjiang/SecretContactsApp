@@ -127,6 +127,11 @@ public class HarassingCallManager {
         db_.insert(MY_TABLE_NAME , null, value);
     }
 
+    public void deleteAllData() {
+        db_.delete(CLOUD_TABLE_NAME, null, null);
+        db_.delete(MY_TABLE_NAME, null, null);
+    }
+
     private class DBHelper extends SQLiteOpenHelper {
 
         private static final String CREATE_CLOUD_HARASSING_TABLE =

@@ -429,8 +429,8 @@ public class SyncService extends Service{
         }
     };
 
-    private WindowManager window_manager_;
-    private TextView window_alert_view_;
+    private WindowManager window_manager_ = null;
+    private TextView window_alert_view_ = null;
 
     public void startInfoWindow(String msg) {
         if (window_alert_view_ != null) {

@@ -185,6 +185,7 @@ public class KeyActivity extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
+                    recovery_key_view_.setVisibility(View.VISIBLE);
                 }
             });
             builder.setView(input_layout);

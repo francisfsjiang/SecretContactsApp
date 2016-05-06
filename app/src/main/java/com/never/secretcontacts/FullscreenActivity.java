@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
@@ -12,6 +11,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -39,11 +39,31 @@ public class FullscreenActivity extends AppCompatActivity {
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
                 if (id == EditorInfo.IME_ACTION_DONE) {
                     String pin_password = pin_password_.getText().toString();
+                    Integer time = MyApp.getPinPasswordWrongTime();
                     if (MyApp.vaildatePinPassword(pin_password)){
+                        MyApp.setPinPasswordWrongTime(0);
                         Intent intent = new Intent(FullscreenActivity.this, MainActivity.class);
                         FullscreenActivity.this.startActivity(intent);
                         FullscreenActivity.this.finish();
                         return true;
+                    }
+                    else {
+                        time++;
+                        MyApp.setPinPasswordWrongTime(time);
+                        if (time > 5) {
+                            Toast.makeText(
+                                    getApplicationContext(),
+                                    "错误次数超过5次，应用已清空数据，请重新登录",
+                                    Toast.LENGTH_LONG).show();
+                            MyApp.clearAllData();
+                            finish();
+                        }
+                        else {
+                            Toast.makeText(
+                                    getApplicationContext(),
+                                    "PIN码错误,已尝试" + time + "次，错误超过5次将自动清除应用内数据",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
                 return false;

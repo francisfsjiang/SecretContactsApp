@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
-                    MyApp.clearLoginStatus();
+                    MyApp.clearAllData();
                     onResume();
                 }
             });
@@ -263,6 +263,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             builder.create().show();
+            onResume();
             return true;
         }
         else if (id == R.id.menu_set_pin) {

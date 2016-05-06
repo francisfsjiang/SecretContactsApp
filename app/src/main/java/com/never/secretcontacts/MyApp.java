@@ -57,10 +57,11 @@ public class MyApp extends Application{
     public static String URL_HARASSING = URL_SITE + "api/harassing";
     public static String URL_UPLOAD_HARASSING = URL_SITE + "api/upload_harassing";
 
-    private static String auth_id_;
-    private static String auth_key_;
+    private static String auth_id_ = "";
+    private static String auth_key_ = "";
 
-    private static String pin_password_;
+    private static String pin_password_ = "";
+    private static Integer pin_password_wrong_time_ = 0;
 
     private static SharedPreferences shared_preference_;
 
@@ -111,7 +112,9 @@ public class MyApp extends Application{
                             if (har > 0) {
                                 block = true;
                             }
-                            if (!block)startInfoWindow("未知号码: " + incomingNumber);
+                            if (!block) {
+                                startInfoWindow("未知号码: " + incomingNumber);
+                            }
                         }
                         else {
                             block = contact.isBlock();
@@ -239,10 +242,13 @@ public class MyApp extends Application{
         return key_manager_.haveKeys();
     }
 
-    public static void clearLoginStatus() {
+    public static void clearAllData() {
         updateLoginStatus("", "");
         setPinPassword("");
+        setPinPasswordWrongTime(0);
         key_manager_.clearKeys();
+        contacts_manager_.deleteAllData();
+        harassing_call_manager_.deleteAllData();
     }
     public static void updateLoginStatus(String auth_id, String auth_key) {
         auth_id_ = auth_id;
@@ -280,13 +286,21 @@ public class MyApp extends Application{
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] bytes = md.digest(text.getBytes());
             String result = Base64.encodeToString(bytes, Base64.DEFAULT);
-            return result;
+            return result.substring(0, result.length()-1);
         }
         catch (Exception e) {
             e.printStackTrace();
             return null;
         }
+    }
 
+    public static void setPinPasswordWrongTime(Integer time) {
+        SharedPreferences.Editor editor =shared_preference_.edit();
+        editor.putInt("pin_password_wrong_time", time);
+        editor.apply();
+    }
+    public static Integer getPinPasswordWrongTime() {
+        return shared_preference_.getInt("pin_password_wrong_time", 0);
     }
 
     public static JSONObject getAuthJson() {
