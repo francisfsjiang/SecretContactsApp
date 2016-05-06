@@ -130,6 +130,7 @@ public class HarassingCallManager {
     public void deleteAllData() {
         db_.delete(CLOUD_TABLE_NAME, null, null);
         db_.delete(MY_TABLE_NAME, null, null);
+        setCloudHarassingUpdateTime(0);
     }
 
     private class DBHelper extends SQLiteOpenHelper {
