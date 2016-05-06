@@ -15,6 +15,7 @@ import android.support.annotation.BoolRes;
 import android.support.v7.app.NotificationCompat;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Base64;
 import android.util.Log;
 import android.util.StringBuilderPrinter;
 import android.view.WindowManager;
@@ -31,6 +32,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.net.HttpURLConnection;
+import java.security.MessageDigest;
+import java.security.spec.EllipticCurve;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -56,6 +59,8 @@ public class MyApp extends Application{
 
     private static String auth_id_;
     private static String auth_key_;
+
+    private static String pin_password_;
 
     private static SharedPreferences shared_preference_;
 
@@ -203,31 +208,40 @@ public class MyApp extends Application{
     @Override
     public void onCreate() {
         super.onCreate();
-        shared_preference_ = getApplicationContext().getSharedPreferences("data", MODE_PRIVATE);
-        auth_key_ = shared_preference_.getString("auth_key", "");
-        auth_id_ = shared_preference_.getString("auth_id", "");
 
-        key_manager_ = SecretKeyManager.getSecretKeyManager(shared_preference_);
-        contacts_manager_ = ContactsManager.getContactsManager(getApplicationContext());
-        harassing_call_manager_ = HarassingCallManager.getCloudBlackListManager(getApplicationContext());
-
-
+        context_ = getApplicationContext();
         IntentFilter receiver_filter_ = new IntentFilter();
         receiver_filter_.addAction("android.intent.action.PHONE_STATE");
         receiver_filter_.addAction("android.intent.action.NEW_OUTGOING_CALL");
         registerReceiver(phone_receiver_, receiver_filter_);
     }
 
-    public static Boolean checkLoginStatus() {
+    private static Context context_;
+
+    public static void init() {
+        shared_preference_ = context_.getSharedPreferences("data", MODE_PRIVATE);
+        auth_key_ = shared_preference_.getString("auth_key", "");
+        auth_id_ = shared_preference_.getString("auth_id", "");
+        pin_password_ = shared_preference_.getString("pin_password", "");
+
+        key_manager_ = SecretKeyManager.getSecretKeyManager(shared_preference_);
+        contacts_manager_ = ContactsManager.getContactsManager(context_);
+        harassing_call_manager_ = HarassingCallManager.getCloudBlackListManager(context_);
+
+
+    }
+
+    public static Boolean haveLoggedIn() {
         return !auth_key_.equals("") && !auth_id_.equals("");
     }
 
-    public static Boolean checkKeyStatus() {
+    public static Boolean haveKeys() {
         return key_manager_.haveKeys();
     }
 
     public static void clearLoginStatus() {
         updateLoginStatus("", "");
+        setPinPassword("");
         key_manager_.clearKeys();
     }
     public static void updateLoginStatus(String auth_id, String auth_key) {
@@ -237,6 +251,42 @@ public class MyApp extends Application{
         editor.putString("auth_key", auth_key_);
         editor.putString("auth_id", auth_id_);
         editor.apply();
+    }
+
+    public static Boolean havePinPassword() {
+        return !pin_password_.equals("");
+    }
+
+    public static void setPinPassword(String pin_passowrd) {
+        SharedPreferences.Editor editor =shared_preference_.edit();
+        String hashed_password = md5Hash(pin_passowrd);
+        pin_password_ = hashed_password;
+        if (pin_passowrd.equals("")) {
+            editor.putString("pin_password", "");
+        }
+        else {
+            editor.putString("pin_password", hashed_password);
+        }
+        editor.apply();
+    }
+
+    public static Boolean vaildatePinPassword(String pin_password) {
+        String hashed_pin = md5Hash(pin_password);
+        return pin_password_.equals(hashed_pin);
+    }
+
+    public static String md5Hash(String text) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = md.digest(text.getBytes());
+            String result = Base64.encodeToString(bytes, Base64.DEFAULT);
+            return result;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
     }
 
     public static JSONObject getAuthJson() {

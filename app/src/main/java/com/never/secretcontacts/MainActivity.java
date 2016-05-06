@@ -12,23 +12,19 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.never.secretcontacts.util.CharacterParser;
 import com.never.secretcontacts.util.Contact;
@@ -177,12 +173,12 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         invalidateOptionsMenu();
 
-        if(MyApp.checkLoginStatus()) {
+        if(MyApp.haveLoggedIn()) {
             sort_list_view_.setVisibility(View.VISIBLE);
             side_bar_.setVisibility(View.VISIBLE);
             search_view_.setVisibility(View.VISIBLE);
             login_recommend_text_view_.setVisibility(View.GONE);
-            if (!MyApp.checkKeyStatus()){
+            if (!MyApp.haveKeys()){
                 sort_list_view_.setVisibility(View.GONE);
                 side_bar_.setVisibility(View.GONE);
                 search_view_.setVisibility(View.GONE);
@@ -205,17 +201,17 @@ public class MainActivity extends AppCompatActivity {
         sort_list_view_.setAdapter(sort_adapter_);
     }
 
-    private static final boolean[] menu_item_visible_unlogged        = {true, true, false, false, false, false, false, false};
-    private static final boolean[] menu_item_visible_logged_no_key   = {false, false, true, true, false, true, true, true};
-    private static final boolean[] menu_item_visible_logged_with_key = {false, false, true, true, true, false, true, true};
+    private static final boolean[] menu_item_visible_unlogged        = {true ,  true, false, false, false, false, false, false};
+    private static final boolean[] menu_item_visible_logged_no_key   = {false, false,  true,  true, false,  true,  true,  true};
+    private static final boolean[] menu_item_visible_logged_with_key = {false, false,  true,  true,  true, false,  true,  true};
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        if(MyApp.checkLoginStatus()) {
-            if (MyApp.checkKeyStatus()) {
+        if(MyApp.haveLoggedIn()) {
+            if (MyApp.haveKeys()) {
                 for (int i = 0; i < menu.size(); i++)
                     menu.getItem(i).setVisible(menu_item_visible_logged_with_key[i]);
             }
@@ -267,6 +263,11 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             builder.create().show();
+            return true;
+        }
+        else if (id == R.id.menu_set_pin) {
+            Intent intent = new Intent(MainActivity.this, PinPasswordSetActivity.class);
+            startActivity(intent);
             return true;
         }
         //noinspection SimplifiableIfStatement

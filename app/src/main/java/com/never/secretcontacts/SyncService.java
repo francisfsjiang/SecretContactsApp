@@ -121,7 +121,7 @@ public class SyncService extends Service{
         protected Integer doInBackground(Void... params) {
             try {
 
-                if (!MyApp.checkKeyStatus() || !MyApp.checkKeyStatus()) {
+                if (!MyApp.haveKeys() || !MyApp.haveKeys()) {
                     return -3;
                 }
 
