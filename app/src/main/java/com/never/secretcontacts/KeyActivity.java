@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,7 +53,32 @@ public class KeyActivity extends AppCompatActivity {
         key_get_button_.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                attemptGetKey("");
+                AlertDialog.Builder builder = new AlertDialog.Builder(KeyActivity.this);
+                builder.setTitle("请输入您的登录密码");
+
+                TextInputLayout input_layout =(TextInputLayout) getLayoutInflater().inflate(
+                        R.layout.dialog_input_key1,
+                        null
+                );
+                final EditText edit_text = (EditText)input_layout.getChildAt(0);
+                builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        attemptGetKey(
+                                "",
+                                edit_text.getText().toString()
+                        );
+                    }
+                });
+                builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.setView(input_layout);
+                builder.show();
             }
         });
 
@@ -61,18 +87,22 @@ public class KeyActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(KeyActivity.this);
-                builder.setTitle("请输入您记下的密钥恢复密码");
+                builder.setTitle("请输入您记下的密钥恢复密码和登录密码");
 
-                TextInputLayout input_layout =(TextInputLayout) getLayoutInflater().inflate(
-                        R.layout.dialog_change_contact_name,
+                LinearLayout input_layout =(LinearLayout) getLayoutInflater().inflate(
+                        R.layout.dialog_input_key2,
                         null
                 );
-                final EditText edit_text = (EditText)input_layout.getChildAt(0);
+                final EditText edit_text = (EditText) ((TextInputLayout)input_layout.getChildAt(0)).getChildAt(0);
+                final EditText edit_text2 = (EditText) ((TextInputLayout)input_layout.getChildAt(1)).getChildAt(0);
                 builder.setPositiveButton("确认", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        attemptGetKey(edit_text.getText().toString());
+                        attemptGetKey(
+                                edit_text.getText().toString(),
+                                edit_text2.getText().toString()
+                        );
                     }
                 });
                 builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
@@ -97,7 +127,7 @@ public class KeyActivity extends AppCompatActivity {
         is_key_got_ = false;
     }
 
-    private void attemptGetKey(String recovery_key) {
+    private void attemptGetKey(String recovery_key, String password) {
         if (key_task_ != null) {
             return;
         }
@@ -114,7 +144,7 @@ public class KeyActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            key_task_ = new GetKeyTask(recovery_key);
+            key_task_ = new GetKeyTask(recovery_key, password);
             key_task_.execute((Void) null);
         }
     }
@@ -203,9 +233,11 @@ public class KeyActivity extends AppCompatActivity {
     public class GetKeyTask extends AsyncTask<Void, Void, Integer> {
 
         private String input_recovery_key_;
+        private String input_password_;
 
-        GetKeyTask(String recovery_key) {
+        GetKeyTask(String recovery_key, String password) {
             input_recovery_key_ = recovery_key;
+            input_password_ = password;
         }
 
         @Override
@@ -218,6 +250,7 @@ public class KeyActivity extends AppCompatActivity {
                 if(!input_recovery_key_.equals("")) {
                     json.put("recover", true);
                     json.put("recovery_key", input_recovery_key_);
+                    json.put("passwd", input_password_);
                     JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_KEY, json);
                     if(resp_json == null) {
                         return -2;
@@ -247,6 +280,7 @@ public class KeyActivity extends AppCompatActivity {
                 }
                 else {
                     json.put("recover", false);
+                    json.put("passwd", input_password_);
                     JSONObject resp_json = MyApp.HttpPostJson(MyApp.URL_KEY, json);
                     if(resp_json == null) {
                         return -2;

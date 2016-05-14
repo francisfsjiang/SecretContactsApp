@@ -294,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private CharacterParser character_parser_;
+    //TODO work
     /**
      * 根据输入框中的值来过滤数据并更新ListView
      * @param filterStr
