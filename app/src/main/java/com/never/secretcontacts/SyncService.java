@@ -71,7 +71,7 @@ public class SyncService extends Service{
     private void startSyncAlarmer() {
         Log.i("service", "starting alarmer.");
         AlarmManager manager = (AlarmManager) getSystemService(ALARM_SERVICE);
-        int next_time = 1000 * 20;
+        int next_time = 1000 * 600; //ms
         long trigger_time = SystemClock.elapsedRealtime() + next_time;
         Intent i = new Intent(this, AlarmReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(this, 0, i, 0);
