@@ -350,6 +350,7 @@ public class SyncService extends Service{
                                 resp_json.getInt("last_op_time")
                         );
                     }
+                    inform_UI_update();
                     return true;
                 }
                 return false;
@@ -388,8 +389,7 @@ public class SyncService extends Service{
 
             Log.i("service", "task finish, res " + res.toString());
             if (res > 0) {
-                Intent i = new Intent("UPDATE_UI");
-                sendBroadcast(i);
+                inform_UI_update();
             }
             else if (res == -1){
                 Log.i("service", "unknown error. ");
@@ -409,6 +409,11 @@ public class SyncService extends Service{
                 if (g_sync_task_ != null)return;
                 g_sync_task_ = new SyncTask();
             }
+        }
+
+        protected void inform_UI_update() {
+            Intent i = new Intent("UPDATE_UI");
+            sendBroadcast(i);
         }
     }
 

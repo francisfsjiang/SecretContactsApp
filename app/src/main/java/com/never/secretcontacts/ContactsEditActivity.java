@@ -3,6 +3,7 @@ package com.never.secretcontacts;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -197,8 +199,9 @@ public class ContactsEditActivity extends AppCompatActivity {
                 R.layout.content_contacts_item,
                 null
         );
-        Spinner new_spinner = (Spinner)new_item_view.getChildAt(0);
-        EditText new_edit_text = (EditText) ((TextInputLayout)new_item_view.getChildAt(1)).getChildAt(0);
+        Spinner new_spinner = (Spinner) new_item_view.getChildAt(0);
+        final EditText new_edit_text = (EditText) ((TextInputLayout)new_item_view.getChildAt(1)).getChildAt(0);
+        Button new_call_button = (Button) new_item_view.getChildAt(2);
         switch (type){
             case PHONE:
                 setSpinnerAndEditText(
@@ -211,6 +214,14 @@ public class ContactsEditActivity extends AppCompatActivity {
                         true
                         );
                 item_list_phone_.addView(new_item_view);
+                new_call_button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(Intent.ACTION_DIAL);
+                        intent.setData(Uri.parse("tel:" + new_edit_text.getText().toString()));
+                        startActivity(intent);
+                    }
+                });
                 break;
             case EMAIL:
                 setSpinnerAndEditText(
@@ -222,6 +233,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                         1,
                         true
                 );
+                new_call_button.setVisibility(View.GONE);
                 item_list_email_.addView(new_item_view);
                 break;
             case ADDRESS:
@@ -234,6 +246,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                         1,
                         true
                 );
+                new_call_button.setVisibility(View.GONE);
                 item_list_address_.addView(new_item_view);
                 break;
             case MEMO:
@@ -246,6 +259,7 @@ public class ContactsEditActivity extends AppCompatActivity {
                         10,
                         false
                 );
+                new_call_button.setVisibility(View.GONE);
                 item_list_memo_.addView(new_item_view);
                 break;
         }

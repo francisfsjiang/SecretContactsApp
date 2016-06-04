@@ -16,7 +16,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.Menu;
@@ -44,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
      */
     private TextView dialog_view_;
     private SortAdapter sort_adapter_;
-//    private ClearEditText mClearEditText;
 
     /**
      * 汉字转换成拼音的类
@@ -132,27 +133,22 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-//        mClearEditText = VClearEditText) findViewById(R.id.filter_edit);
-//
-//        //根据输入框输入值的改变来过滤搜索
-//        mClearEditText.addTextChangedListener(new TextWatcher() {
-//
-//            @Override
-//            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                //当输入框里面的值为空，更新为原来的列表，否则为过滤数据列表
-//                filterData(s.toString());
-//            }
-//
-//            @Override
-//            public void beforeTextChanged(CharSequence s, int start, int count,
-//                                          int after) {
-//
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable s) {
-//            }
-//        });
+        search_view_ = (SearchView) findViewById(R.id.search_view);
+
+        //根据输入框输入值的改变来过滤搜索
+        search_view_.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                filterData(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                filterData(newText);
+                return true;
+            }
+        });
 
         receiver_filter_.addAction("UPDATE_UI");
         registerReceiver(receiver_, receiver_filter_);
@@ -300,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
      * @param filterStr
      */
     private void filterData(String filterStr) {
-        List<Contact> filterDateList = new ArrayList<Contact>();
+        List<Contact> filterDateList = new ArrayList<>();
 
         if (TextUtils.isEmpty(filterStr)) {
             filterDateList = source_data_list_;
@@ -316,9 +312,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-
-        // 根据a-z进行排序
-        Collections.sort(filterDateList, pinyin_comparator_);
         sort_adapter_.updateListView(filterDateList);
     }
 
