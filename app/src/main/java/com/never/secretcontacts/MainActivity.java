@@ -187,6 +187,7 @@ public class MainActivity extends AppCompatActivity {
             side_bar_.setVisibility(View.GONE);
             search_view_.setVisibility(View.GONE);
             login_recommend_text_view_.setVisibility(View.VISIBLE);
+            login_recommend_text_view_.setText(getResources().getText(R.string.login_recommend));
         }
 
         source_data_list_ = MyApp.contacts_manager_.getAllContacts();

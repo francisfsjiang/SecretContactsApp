@@ -54,7 +54,7 @@
             android:hint="@string/prompt_pin_password"
             android:imeActionId="@+id/login_pin_password"
             android:imeActionLabel="@string/action_login_short2"
-            android:imeOptions="actionUnspecified"
+            android:imeOptions="actionDone"
             android:inputType="numberPassword"
             android:maxLines="1"
             android:singleLine="true"

@@ -37,7 +37,7 @@ public class FullscreenActivity extends AppCompatActivity {
         pin_password_.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int id, KeyEvent keyEvent) {
-                if (id == EditorInfo.IME_ACTION_DONE) {
+                if (id == EditorInfo.IME_ACTION_DONE || id == 0) {
                     String pin_password = pin_password_.getText().toString();
                     Integer time = MyApp.getPinPasswordWrongTime();
                     if (MyApp.vaildatePinPassword(pin_password)){
