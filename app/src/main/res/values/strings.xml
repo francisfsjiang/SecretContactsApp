@@ -13,7 +13,6 @@
     <string name="menu_sync_now">立即同步</string>
     <string name="menu_key">密钥管理</string>
     <string name="menu_logout">登出</string>
-    <string name="menu_settings">设置</string>
 
     <string name="title_activity_menu">菜单</string>
 

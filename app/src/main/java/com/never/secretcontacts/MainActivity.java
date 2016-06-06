@@ -198,9 +198,9 @@ public class MainActivity extends AppCompatActivity {
         sort_list_view_.setAdapter(sort_adapter_);
     }
 
-    private static final boolean[] menu_item_visible_unlogged        = {true ,  true, false, false, false, false, false, false};
-    private static final boolean[] menu_item_visible_logged_no_key   = {false, false,  true,  true, false,  true,  true,  true};
-    private static final boolean[] menu_item_visible_logged_with_key = {false, false,  true,  true,  true, false,  true,  true};
+    private static final boolean[] menu_item_visible_unlogged        = {true ,  true, false, false, false, false, false};
+    private static final boolean[] menu_item_visible_logged_no_key   = {false, false,  true,  true, false,  true,  true};
+    private static final boolean[] menu_item_visible_logged_with_key = {false, false,  true,  true,  true, false,  true};
 
 
     @Override
@@ -266,10 +266,6 @@ public class MainActivity extends AppCompatActivity {
         else if (id == R.id.menu_set_pin) {
             Intent intent = new Intent(MainActivity.this, PinPasswordSetActivity.class);
             startActivity(intent);
-            return true;
-        }
-        //noinspection SimplifiableIfStatement
-        else if (id == R.id.menu_settings) {
             return true;
         }
         else if (id == R.id.menu_key) {
